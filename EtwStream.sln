@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30516.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B09A3A79-15C0-4A4B-A596-C645EF1AD61F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.Core", "EtwStream.Core\EtwStream.Core.csproj", "{160A1602-5FA5-4E54-A2B0-21BD33FE06F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.ConsoleViewer", "EtwStream.ConsoleViewer\EtwStream.ConsoleViewer.csproj", "{BFBFF842-93E1-4EF8-B269-D0EF07FF9076}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{160A1602-5FA5-4E54-A2B0-21BD33FE06F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{160A1602-5FA5-4E54-A2B0-21BD33FE06F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{160A1602-5FA5-4E54-A2B0-21BD33FE06F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{160A1602-5FA5-4E54-A2B0-21BD33FE06F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFBFF842-93E1-4EF8-B269-D0EF07FF9076}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFBFF842-93E1-4EF8-B269-D0EF07FF9076}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFBFF842-93E1-4EF8-B269-D0EF07FF9076}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFBFF842-93E1-4EF8-B269-D0EF07FF9076}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
