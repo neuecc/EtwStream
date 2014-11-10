@@ -68,9 +68,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="_EventRegisterUsersGuide.docx" />
-    <None Include="_EventSourceUsersGuide.docx" />
-    <None Include="_TraceEventProgrammersGuide.docx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EtwStream.Core\EtwStream.Core.csproj">

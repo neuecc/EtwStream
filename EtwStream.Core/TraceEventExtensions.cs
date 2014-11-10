@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EtwStream
 {
-    public static class TraveEventExtensions
+    public static class TraceEventExtensions
     {
         public static string DumpPayload(this TraceEvent traceEvent)
         {

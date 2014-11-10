@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Diagnostics.Tracing.Parsers;
 
 namespace EtwStream.ConsoleViewer
 {
@@ -39,20 +40,61 @@ namespace EtwStream.ConsoleViewer
         {
             if (true)
             {
+                var cts = new CancellationTokenSource();
+                Console.CancelKeyPress += (sender, e) =>
+                {
+                    e.Cancel = true;
+                    cts.Cancel();
+                };
+
                 while (true)
                 {
                     Console.WriteLine("Start and Show ETW TraceSession");
-                    Console.WriteLine("Press Ctrl+C : Cancel");
+                    Console.WriteLine("Press Ctrl+C as Cancel");
+                    Console.WriteLine("Enter PrividerName(e.g.'MyEventSource') or ProviderGUID(e.g.'2e5dba47-a3d2-4d16-8ee0-6671ffdcd7b5')");
+                    Console.WriteLine("Enter '-clr eventName*' for ClrTrace(e.g.-clr GC/Stop)");
+                    Console.WriteLine("Enter '-kernel flags*' for KernelTrace(e.g.-kernel DiskIO FileIO)");
+                    Console.WriteLine();
                     Console.Write("Enter ProviderName(or GUID): ");
                     var nameOrGuid = Console.ReadLine();
                     Console.WriteLine();
+                    if (string.IsNullOrWhiteSpace(nameOrGuid)) continue;
 
-                    Guid guid;
-                    var eventListener = Guid.TryParse(nameOrGuid, out guid)
-                        ? ObservableEventListener.FromTraceEvent(guid)
-                        : ObservableEventListener.FromTraceEvent(nameOrGuid);
+                    IObservable<TraceEvent> eventListener;
 
-                    CancellationTokenSource cts = new CancellationTokenSource();
+                    var splitted = (nameOrGuid ?? "").Split(' ');
+                    if (nameOrGuid == "-clr" || (splitted.Length >= 1 && splitted[0] == "-clr"))
+                    {
+                        eventListener = ObservableEventListener.FromClrTraceEvent();
+                        if (splitted.Length >= 2)
+                        {
+                            var filter = new HashSet<string>(splitted.Skip(1));
+                            eventListener = eventListener.Where(x => filter.Contains(x.EventName));
+                        }
+                    }
+                    else if (splitted.Length >= 1 && splitted[0] == "-kernel")
+                    {
+                        KernelTraceEventParser.Keywords flags;
+                        if (splitted.Length == 1)
+                        {
+                            flags = KernelTraceEventParser.Keywords.All;
+                        }
+                        else
+                        {
+                            flags = splitted.Skip(1).Select(x => (KernelTraceEventParser.Keywords)Enum.Parse(typeof(KernelTraceEventParser.Keywords), x, true))
+                                .Aggregate((x, y) => x | y);
+                        }
+                        eventListener = ObservableEventListener.FromKernelTraceEvent(flags);
+                    }
+                    else
+                    {
+                        Guid guid;
+                        eventListener = Guid.TryParse(nameOrGuid, out guid)
+                           ? ObservableEventListener.FromTraceEvent(guid)
+                           : ObservableEventListener.FromTraceEvent(nameOrGuid);
+                    }
+
+                    cts = new CancellationTokenSource();
                     var subscription = eventListener
                         .ForEachAsync(x =>
                         {
@@ -82,12 +124,6 @@ namespace EtwStream.ConsoleViewer
                                 Console.ForegroundColor = currentColor;
                             }
                         }, cts.Token);
-
-                    Console.CancelKeyPress += (sender, e) =>
-                    {
-                        e.Cancel = true;
-                        cts.Cancel();
-                    };
 
                     try
                     {

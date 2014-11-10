@@ -28,7 +28,7 @@ namespace EtwStream
         public static IObservableEventListener<TraceEvent> FromTraceEvent(Guid providerGuid)
         {
             var subject = new Subject<TraceEvent>();
-            
+
             var session = new TraceEventSession("MyRealTimeSession", TraceEventSessionOptions.Create);
             var sessionName = session.SessionName;
 
@@ -91,6 +91,36 @@ namespace EtwStream
             }, TaskCreationOptions.LongRunning);
 
             return new TraceEventListener<TData>(subject, session);
+        }
+
+        public static IObservableEventListener<TraceEvent> FromClrTraceEvent()
+        {
+            var subject = new Subject<TraceEvent>();
+
+            var session = new TraceEventSession("MyRealTimeSession");
+            try
+            {
+                var guid = Microsoft.Diagnostics.Tracing.Parsers.ClrTraceEventParser.ProviderGuid;
+                session.EnableProvider(guid);
+                session.Source.Clr.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
+                    .Where(x => x.ProviderGuid == guid && x.EventName != ManifestEventName && x.ID != ManifestEventID)
+                    .Subscribe(subject);
+            }
+            catch
+            {
+                session.Dispose();
+                throw;
+            }
+
+            Task.Factory.StartNew(state =>
+            {
+                using (session)
+                {
+                    session.Source.Process();
+                }
+            }, TaskCreationOptions.LongRunning);
+
+            return new TraceEventListener<TraceEvent>(subject, session);
         }
 
         public static IObservableEventListener<TraceEvent> FromKernelTraceEvent(KernelTraceEventParser.Keywords flags, KernelTraceEventParser.Keywords stackCapture = KernelTraceEventParser.Keywords.None)
