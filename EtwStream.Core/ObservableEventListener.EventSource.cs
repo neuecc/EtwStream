@@ -1,4 +1,5 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿using System.Diagnostics.Tracing;
+using System.Reactive.Linq;
 using System;
 using System.Collections.Generic;
 using System.Reactive.Subjects;
@@ -12,16 +13,16 @@ namespace EtwStream
         /// <summary>
         /// Observe In-Process EventSource events. It's no across ETW.
         /// </summary>
-        public static IObservableEventListener<EventWrittenEventArgs> FromEventSource(EventSource eventSource, EventLevel level = EventLevel.Verbose, EventKeywords matchAnyKeyword = EventKeywords.None, IDictionary<string, string> arguments = null)
+        public static IObservable<EventWrittenEventArgs> FromEventSource(EventSource eventSource, EventLevel level = EventLevel.Verbose, EventKeywords matchAnyKeyword = EventKeywords.None, IDictionary<string, string> arguments = null)
         {
             if (eventSource == null) throw new ArgumentNullException("eventSource");
 
-            var listener = new MicrosoftEventSourceListener();
+            var listener = new SystemEventSourceListener();
             listener.EnableEvents(eventSource, level, matchAnyKeyword, arguments);
-            return listener;
+            return listener.Finally(() => listener.DisableEvents(eventSource));
         }
 
-        public static IObservableEventListener<EventWrittenEventArgs> FromMicrosoftEventSource(string eventSourceName, EventLevel level = EventLevel.Verbose, EventKeywords matchAnyKeyword = EventKeywords.None, IDictionary<string, string> arguments = null)
+        public static IObservable<EventWrittenEventArgs> FromEventSource(string eventSourceName, EventLevel level = EventLevel.Verbose, EventKeywords matchAnyKeyword = EventKeywords.None, IDictionary<string, string> arguments = null)
         {
             if (eventSourceName == null) throw new ArgumentNullException("eventSourceName");
 
@@ -33,8 +34,8 @@ namespace EtwStream
                 }
             }
 
-            var listener = new MicrosoftEventSourceListener();
-            listener.RegisterDelay(new MicrosoftArgs
+            var listener = new SystemEventSourceListener();
+            listener.RegisterDelay(new SystemArgs
             {
                 EventSourceName = eventSourceName,
                 Level = level,
@@ -45,13 +46,13 @@ namespace EtwStream
             return listener;
         }
 
-        class MicrosoftEventSourceListener : EventListener, IObservableEventListener<EventWrittenEventArgs>
+        class SystemEventSourceListener : EventListener, IObservable<EventWrittenEventArgs>
         {
             Subject<EventWrittenEventArgs> subject = new Subject<EventWrittenEventArgs>();
             object delayLock = new object();
-            LinkedList<MicrosoftArgs> delayedRegisters = new LinkedList<MicrosoftArgs>();
+            LinkedList<SystemArgs> delayedRegisters = new LinkedList<SystemArgs>();
 
-            public void RegisterDelay(MicrosoftArgs args)
+            public void RegisterDelay(SystemArgs args)
             {
                 lock (delayLock)
                 {
@@ -89,15 +90,9 @@ namespace EtwStream
             {
                 return subject.Subscribe(observer);
             }
-
-            public override void Dispose()
-            {
-                subject.Dispose();
-                base.Dispose();
-            }
         }
 
-        class MicrosoftArgs
+        class SystemArgs
         {
             public string EventSourceName;
             public EventLevel Level;

@@ -13,224 +13,109 @@ namespace EtwStream.ConsoleViewer
 {
     class Program
     {
-        // TODO:Currently, sandbox.
-
-        static ConsoleColor? GetColorMap(TraceEvent traceEvent)
-        {
-            switch (traceEvent.Level)
-            {
-                case TraceEventLevel.Critical:
-                    return ConsoleColor.Magenta;
-                case TraceEventLevel.Error:
-                    return ConsoleColor.Red;
-                case TraceEventLevel.Informational:
-                    return ConsoleColor.Gray;
-                case TraceEventLevel.Verbose:
-                    return ConsoleColor.Green;
-                case TraceEventLevel.Warning:
-                    return ConsoleColor.Yellow;
-                case TraceEventLevel.Always:
-                    return ConsoleColor.White;
-                default:
-                    return null;
-            }
-        }
-
         static void Main(string[] args)
         {
-            if (true)
+            var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += (sender, e) =>
             {
-                var cts = new CancellationTokenSource();
-                Console.CancelKeyPress += (sender, e) =>
+                e.Cancel = true;
+                cts.Cancel();
+            };
+
+            while (true)
+            {
+                Console.WriteLine("Start and Show ETW TraceSession");
+                Console.WriteLine("Press Ctrl+C as Cancel");
+                Console.WriteLine("Enter PrividerName(e.g.'MyEventSource') or ProviderGUID(e.g.'2e5dba47-a3d2-4d16-8ee0-6671ffdcd7b5')");
+                Console.WriteLine("Enter '-clr eventName*' for ClrTrace(e.g.-clr GC/Stop)");
+                Console.WriteLine("Enter '-kernel flags*' for KernelTrace(e.g.-kernel DiskIO FileIO)");
+                Console.WriteLine();
+                Console.Write("Enter ProviderName(or GUID): ");
+                var nameOrGuid = Console.ReadLine();
+                Console.WriteLine();
+                if (string.IsNullOrWhiteSpace(nameOrGuid)) continue;
+
+                IObservable<TraceEvent> eventListener;
+
+                var splitted = (nameOrGuid ?? "").Split(' ');
+                if (nameOrGuid == "-clr" || (splitted.Length >= 1 && splitted[0] == "-clr"))
                 {
-                    e.Cancel = true;
-                    cts.Cancel();
-                };
-
-                while (true)
-                {
-                    Console.WriteLine("Start and Show ETW TraceSession");
-                    Console.WriteLine("Press Ctrl+C as Cancel");
-                    Console.WriteLine("Enter PrividerName(e.g.'MyEventSource') or ProviderGUID(e.g.'2e5dba47-a3d2-4d16-8ee0-6671ffdcd7b5')");
-                    Console.WriteLine("Enter '-clr eventName*' for ClrTrace(e.g.-clr GC/Stop)");
-                    Console.WriteLine("Enter '-kernel flags*' for KernelTrace(e.g.-kernel DiskIO FileIO)");
-                    Console.WriteLine();
-                    Console.Write("Enter ProviderName(or GUID): ");
-                    var nameOrGuid = Console.ReadLine();
-                    Console.WriteLine();
-                    if (string.IsNullOrWhiteSpace(nameOrGuid)) continue;
-
-                    IObservable<TraceEvent> eventListener;
-
-                    var splitted = (nameOrGuid ?? "").Split(' ');
-                    if (nameOrGuid == "-clr" || (splitted.Length >= 1 && splitted[0] == "-clr"))
+                    eventListener = ObservableEventListener.FromClrTraceEvent();
+                    if (splitted.Length >= 2)
                     {
-                        eventListener = ObservableEventListener.FromClrTraceEvent();
-                        if (splitted.Length >= 2)
-                        {
-                            var filter = new HashSet<string>(splitted.Skip(1));
-                            eventListener = eventListener.Where(x => filter.Contains(x.EventName));
-                        }
+                        var filter = new HashSet<string>(splitted.Skip(1));
+                        eventListener = eventListener.Where(x => filter.Contains(x.EventName));
                     }
-                    else if (splitted.Length >= 1 && splitted[0] == "-kernel")
+                }
+                else if (splitted.Length >= 1 && splitted[0] == "-kernel")
+                {
+                    KernelTraceEventParser.Keywords flags;
+                    if (splitted.Length == 1)
                     {
-                        KernelTraceEventParser.Keywords flags;
-                        if (splitted.Length == 1)
-                        {
-                            flags = KernelTraceEventParser.Keywords.All;
-                        }
-                        else
-                        {
-                            flags = splitted.Skip(1).Select(x => (KernelTraceEventParser.Keywords)Enum.Parse(typeof(KernelTraceEventParser.Keywords), x, true))
-                                .Aggregate((x, y) => x | y);
-                        }
-                        eventListener = ObservableEventListener.FromKernelTraceEvent(flags);
+                        flags = KernelTraceEventParser.Keywords.All;
                     }
                     else
                     {
-                        Guid guid;
-                        eventListener = Guid.TryParse(nameOrGuid, out guid)
-                           ? ObservableEventListener.FromTraceEvent(guid)
-                           : ObservableEventListener.FromTraceEvent(nameOrGuid);
+                        flags = splitted.Skip(1).Select(x => (KernelTraceEventParser.Keywords)Enum.Parse(typeof(KernelTraceEventParser.Keywords), x, true))
+                            .Aggregate((x, y) => x | y);
                     }
+                    eventListener = ObservableEventListener.FromKernelTraceEvent(flags);
+                }
+                else
+                {
+                    Guid guid;
+                    eventListener = Guid.TryParse(nameOrGuid, out guid)
+                       ? ObservableEventListener.FromTraceEvent(guid)
+                       : ObservableEventListener.FromTraceEvent(nameOrGuid);
+                }
 
-                    cts = new CancellationTokenSource();
-                    var subscription = eventListener
-                        .ForEachAsync(x =>
+                cts = new CancellationTokenSource();
+                var subscription = eventListener
+                    .ForEachAsync(x =>
+                    {
+                        var currentColor = Console.ForegroundColor;
+                        try
                         {
-                            var currentColor = Console.ForegroundColor;
+                            var eventColor = x.GetColorMap(isBackgroundWhite: false);
+                            if (eventColor != null)
+                            {
+                                Console.ForegroundColor = eventColor.Value;
+                            }
+
+                            var processName = default(string);
                             try
                             {
-                                var eventColor = GetColorMap(x);
-                                if (eventColor != null)
-                                {
-                                    Console.ForegroundColor = eventColor.Value;
-                                }
-
-                                var processName = default(string);
-                                try
-                                {
-                                    var process = System.Diagnostics.Process.GetProcessById(x.ProcessID);
-                                    processName = process.ProcessName;
-                                }
-                                catch (ArgumentException)
-                                {
-                                }
-
-                                Console.WriteLine(((processName != null) ? "[" + processName + "]" : "") + x.DumpPayloadOrMessage());
+                                var process = System.Diagnostics.Process.GetProcessById(x.ProcessID);
+                                processName = process.ProcessName;
                             }
-                            finally
+                            catch (ArgumentException)
                             {
-                                Console.ForegroundColor = currentColor;
                             }
-                        }, cts.Token);
 
-                    try
+                            Console.WriteLine(((processName != null) ? "[" + processName + "]" : "") + x.DumpPayloadOrMessage());
+                        }
+                        finally
+                        {
+                            Console.ForegroundColor = currentColor;
+                        }
+                    }, cts.Token);
+
+                try
+                {
+                    subscription.Wait();
+                }
+                catch (AggregateException ex)
+                {
+                    if (ex.InnerExceptions.Any(x => x is TaskCanceledException))
                     {
-                        subscription.Wait();
+                        Console.WriteLine(); // restart
                     }
-                    catch (AggregateException ex)
+                    else
                     {
-                        if (ex.InnerExceptions.Any(x => x is TaskCanceledException))
-                        {
-                            Console.WriteLine(); // restart
-                        }
-                        else
-                        {
-                            throw;
-                        }
+                        throw;
                     }
                 }
             }
-
-
-
-
-
-            // Microsoft.Diagnostics.Tracing.get
-
-            //var session = new TraceEventSession("MySource2");
-            ////{
-            //session.Source.Dynamic.All += delegate(TraceEvent data)              // Set Source (stream of events) from session.  
-            //{                                                                    // Get dynamic parser (knows about EventSources) 
-            //    // Subscribe to all EventSource events
-            //    Console.WriteLine("GOT Event " + data.EventName);                          // Print each message as it comes in 
-            //};
-
-            //var eventSourceGuid = TraceEventProviders.GetEventSourceGuidFromName("MySource2"); // Get the unique ID for the eventSouce. 
-            //session.EnableProvider(eventSourceGuid);                                               // Enable MyEventSource.
-            //Task.Factory.StartNew(() => session.Source.Process());                                                              // Wait for incoming events (forever).  
-
-
-            var actives = TraceEventSession.GetActiveSessionNames();
-
-            var hoge = actives.Where(x => x.StartsWith("EtwStream")).ToArray();
-            foreach (var item in hoge)
-            {
-                new TraceEventSession(item, TraceEventSessionOptions.Create).Dispose();
-            }
-            var hoge2 = actives.Where(x => x.StartsWith("EtwStream")).ToArray();
-
-            //ObservableEventListener.FromTraceEvent("MySource2")
-            ObservableEventListener.FromEventSource(MySource2.Log)
-                .Subscribe(x =>
-                {
-                    Console.WriteLine(x.DumpPayloadOrMessage());
-                });
-
-
-
-            //Parallel.For(0, 10, x => { });
-            Task.Factory.StartNew(() =>
-            {
-                while (true)
-                {
-                    MySource2.Log.Hello(100, 200, "hogehoge!");
-
-
-                    Thread.Sleep(TimeSpan.FromSeconds(100));
-                }
-            });
-
-            Console.ReadLine();
         }
     }
-
-    [EventSource(Name = "MySource2")]
-    public sealed class MySource2 : Microsoft.Diagnostics.Tracing.EventSource
-    {
-        public static MySource2 Log = new MySource2();
-
-        MySource2()
-        {
-
-        }
-
-        public static class Keywords
-        {
-            public const EventKeywords Hoge = (EventKeywords)1;
-        }
-
-        public static class Tasks
-        {
-            public const EventTask TraceEventSession = (EventTask)1;
-        }
-
-        public static class Opcodes
-        {
-            public const EventOpcode HugaHuga = (EventOpcode)13;
-        }
-
-        [Event(1, Keywords = Keywords.Hoge, Task = Tasks.TraceEventSession, Opcode = Opcodes.HugaHuga)]
-        public void Hello(int z, int y, string v)
-        {
-            WriteEvent(1, z, y, v ?? "");
-        }
-
-        public void Hello3(int z, int y, string v)
-        {
-            WriteEvent(2, z, y, v ?? "");
-        }
-    }
-
 }

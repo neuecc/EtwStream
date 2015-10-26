@@ -1,20 +1,40 @@
-﻿using Microsoft.Diagnostics.Tracing;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Diagnostics.Tracing;
 
 namespace EtwStream
 {
     public static class TraceEventExtensions
     {
+        public static ConsoleColor? GetColorMap(this TraceEvent traceEvent, bool isBackgroundWhite)
+        {
+            switch (traceEvent.Level)
+            {
+                case TraceEventLevel.Critical:
+                    return ConsoleColor.Magenta;
+                case TraceEventLevel.Error:
+                    return ConsoleColor.Red;
+                case TraceEventLevel.Informational:
+                    return ConsoleColor.Gray;
+                case TraceEventLevel.Verbose:
+                    return ConsoleColor.Green;
+                case TraceEventLevel.Warning:
+                    return isBackgroundWhite ? ConsoleColor.DarkRed : ConsoleColor.Yellow;
+                case TraceEventLevel.Always:
+                    return isBackgroundWhite ? ConsoleColor.Black : ConsoleColor.White;
+                default:
+                    return null;
+            }
+        }
+
         public static string DumpPayload(this TraceEvent traceEvent)
         {
             var names = traceEvent.PayloadNames;
 
             var sb = new StringBuilder();
-            sb.Append(traceEvent.EventName).Append(": ");
             sb.Append("{");
             var count = names.Length;
             for (int i = 0; i < count; i++)
@@ -33,16 +53,6 @@ namespace EtwStream
         {
             var msg = traceEvent.FormattedMessage;
             return string.IsNullOrWhiteSpace(msg) ? traceEvent.DumpPayload() : msg;
-        }
-
-        public static IEnumerable<KeyValuePair<string, object>> MergePayloadValues(this TraceEvent traceEvent)
-        {
-            var names = traceEvent.PayloadNames;
-
-            for (int i = 0; i < names.Length; i++)
-            {
-                yield return new KeyValuePair<string, object>(names[i], traceEvent.PayloadValue(i));
-            }
         }
     }
 }

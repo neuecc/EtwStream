@@ -1,23 +1,24 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿using System;
 using System.Reactive.Linq;
-using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Session;
-using System;
-using System.Collections.Generic;
 using System.Reactive.Subjects;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Diagnostics.Tracing;
+using Microsoft.Diagnostics.Tracing.Parsers;
+using Microsoft.Diagnostics.Tracing.Session;
 
 namespace EtwStream
 {
-    // Out-of-Process(TraceEvent) Listener
-
     public static partial class ObservableEventListener
     {
         const string ManifestEventName = "ManifestData";
         const TraceEventID ManifestEventID = (TraceEventID)0xFFFE;
 
-        public static IObservableEventListener<TraceEvent> FromTraceEvent(string providerName)
+        /// <summary>
+        /// Observer Out-of-Process ETW Realtime session by provider Name.
+        /// </summary>
+        /// <param name="providerName">e.g.'MyEventSource'</param>
+        public static IObservable<TraceEvent> FromTraceEvent(string providerName)
         {
             return FromTraceEvent(TraceEventProviders.GetEventSourceGuidFromName(providerName));
         }
@@ -25,18 +26,20 @@ namespace EtwStream
         /// <summary>
         /// Observer Out-of-Process ETW Realtime session by provider Guid.
         /// </summary>
-        public static IObservableEventListener<TraceEvent> FromTraceEvent(Guid providerGuid)
+        /// <param name="providerGuid">e.g.'2e5dba47-a3d2-4d16-8ee0-6671ffdcd7b5'</param>
+        public static IObservable<TraceEvent> FromTraceEvent(Guid providerGuid)
         {
-            var subject = new Subject<TraceEvent>();
+            IConnectableObservable<TraceEvent> source;
 
-            var session = new TraceEventSession("MyRealTimeSession", TraceEventSessionOptions.Create);
+            var session = new TraceEventSession("ObservableEventListenerFromTraceEventSession." + providerGuid.ToString());
             var sessionName = session.SessionName;
 
             try
             {
-                session.Source.Dynamic.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
+                source = session.Source.Dynamic.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
                     .Where(x => x.ProviderGuid == providerGuid && x.EventName != ManifestEventName && x.ID != ManifestEventID)
-                    .Subscribe(subject);
+                    .Finally(() => session.Dispose())
+                    .Publish();
                 session.EnableProvider(providerGuid);
             }
             catch
@@ -49,32 +52,30 @@ namespace EtwStream
             {
                 try
                 {
-                    EtwStreamEventSource.Log.SessionBegin(sessionName);
                     session.Source.Process();
                 }
                 finally
                 {
-                    EtwStreamEventSource.Log.SessionEnd(sessionName);
                     session.Dispose();
                 }
             }, TaskCreationOptions.LongRunning);
 
-            return new TraceEventListener<TraceEvent>(subject, session);
+            return source.RefCount();
         }
 
-        public static IObservableEventListener<TData> FromTraceEvent<TParser, TData>()
+        public static IObservable<TData> FromTraceEvent<TParser, TData>()
             where TParser : TraceEventParser
             where TData : TraceEvent
         {
-            var subject = new Subject<TData>();
+            IConnectableObservable<TData> source;
 
-            var session = new TraceEventSession("MyRealTimeSession");
+            var session = new TraceEventSession("ObservableEventListenerFromTraceEventSessionWithParser");
             try
             {
                 var parser = (TraceEventParser)typeof(TParser).GetConstructor(new[] { typeof(TraceEventSource) }).Invoke(new[] { session.Source });
                 var guid = (Guid)typeof(TParser).GetField("ProviderGuid", BindingFlags.Public | BindingFlags.Static).GetValue(null);
+                source = parser.Observe<TData>().Finally(() => session.Dispose()).Publish();
                 session.EnableProvider(guid);
-                parser.Observe<TData>().Subscribe(subject);
             }
             catch
             {
@@ -90,21 +91,25 @@ namespace EtwStream
                 }
             }, TaskCreationOptions.LongRunning);
 
-            return new TraceEventListener<TData>(subject, session);
+            return source.RefCount();
         }
 
-        public static IObservableEventListener<TraceEvent> FromClrTraceEvent()
+        /// <summary>
+        /// Observer Out-of-Process ETW Realtime session from clr event.
+        /// </summary>
+        public static IObservable<TraceEvent> FromClrTraceEvent()
         {
-            var subject = new Subject<TraceEvent>();
+            IConnectableObservable<TraceEvent> source;
 
-            var session = new TraceEventSession("MyRealTimeSession");
+            var session = new TraceEventSession("ObservableEventListenerFromClrTraceEventSession");
             try
             {
                 var guid = Microsoft.Diagnostics.Tracing.Parsers.ClrTraceEventParser.ProviderGuid;
-                session.EnableProvider(guid);
-                session.Source.Clr.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
+                source = session.Source.Clr.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
                     .Where(x => x.ProviderGuid == guid && x.EventName != ManifestEventName && x.ID != ManifestEventID)
-                    .Subscribe(subject);
+                    .Finally(() => session.Dispose())
+                    .Publish();
+                session.EnableProvider(guid);
             }
             catch
             {
@@ -120,21 +125,22 @@ namespace EtwStream
                 }
             }, TaskCreationOptions.LongRunning);
 
-            return new TraceEventListener<TraceEvent>(subject, session);
+            return source.RefCount();
         }
 
-        public static IObservableEventListener<TraceEvent> FromKernelTraceEvent(KernelTraceEventParser.Keywords flags, KernelTraceEventParser.Keywords stackCapture = KernelTraceEventParser.Keywords.None)
+        public static IObservable<TraceEvent> FromKernelTraceEvent(KernelTraceEventParser.Keywords flags, KernelTraceEventParser.Keywords stackCapture = KernelTraceEventParser.Keywords.None)
         {
-            var subject = new Subject<TraceEvent>();
+            IConnectableObservable<TraceEvent> source;
 
-            var session = new TraceEventSession("MyRealTimeSession");
+            var session = new TraceEventSession("ObservableEventListenerFromKernelTraceEventSession");
             try
             {
                 var guid = KernelTraceEventParser.ProviderGuid;
-                session.EnableKernelProvider(flags, stackCapture);
-                session.Source.Kernel.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
+                source = session.Source.Kernel.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
                     .Where(x => x.ProviderGuid == guid && x.EventName != ManifestEventName && x.ID != ManifestEventID)
-                    .Subscribe(subject);
+                    .Finally(() => session.Dispose())
+                    .Publish();
+                session.EnableKernelProvider(flags, stackCapture);
             }
             catch
             {
@@ -150,19 +156,18 @@ namespace EtwStream
                 }
             }, TaskCreationOptions.LongRunning);
 
-            return new TraceEventListener<TraceEvent>(subject, session);
+            return source.RefCount();
         }
 
-        public static IObservableEventListener<TData> FromKernelTraceEvent<TData>(KernelTraceEventParser.Keywords flags, KernelTraceEventParser.Keywords stackCapture = KernelTraceEventParser.Keywords.None)
+        public static IObservable<TData> FromKernelTraceEvent<TData>(KernelTraceEventParser.Keywords flags, KernelTraceEventParser.Keywords stackCapture = KernelTraceEventParser.Keywords.None)
             where TData : TraceEvent
         {
-            var subject = new Subject<TData>();
-
-            var session = new TraceEventSession("MyRealTimeSession");
+            IConnectableObservable<TData> source;
+            var session = new TraceEventSession("ObservableEventListenerFromTraceEventSession");
             try
             {
+                source = session.Source.Kernel.Observe<TData>().Finally(() => session.Dispose()).Publish();
                 session.EnableKernelProvider(flags, stackCapture);
-                session.Source.Kernel.Observe<TData>().Subscribe(subject);
             }
             catch
             {
@@ -178,30 +183,7 @@ namespace EtwStream
                 }
             }, TaskCreationOptions.LongRunning);
 
-            return new TraceEventListener<TData>(subject, session);
-        }
-
-        class TraceEventListener<T> : IObservableEventListener<T>
-        {
-            readonly Subject<T> subject;
-            readonly TraceEventSession session;
-
-            public TraceEventListener(Subject<T> subject, TraceEventSession session)
-            {
-                this.subject = subject;
-                this.session = session;
-            }
-
-            public IDisposable Subscribe(IObserver<T> observer)
-            {
-                return subject.Subscribe(observer);
-            }
-
-            public void Dispose()
-            {
-                subject.Dispose();
-                session.Dispose();
-            }
+            return source.RefCount();
         }
     }
 }
