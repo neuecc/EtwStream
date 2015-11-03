@@ -34,7 +34,7 @@ You usually use FromTraceEvent, it can observer own defined EventSource and buil
 
 `FromFileTail` is not ETW/EventSouce but useful method. It's like tail -f. FromFileTail does not enable auto scrolling automatically. You should enable AutoScrollResults = true manually.
 
-```
+```csharp
 Util.AutoScrollResults = true;
 
 ObservableEventListener.FromFileTail(@"C:\log.txt")
@@ -70,7 +70,7 @@ LoggerEventSource
 ---
 First step for use EventSource. Here is simply legacy-unstructured-logging style logger.
 
-```
+```csharp
 [EventSource(Name = "LoggerEventSource")]
 public class LoggerEventSource : EventSource
 {
