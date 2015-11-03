@@ -22,6 +22,9 @@ namespace EtwStream
             return listener.Finally(() => listener.DisableEvents(eventSource));
         }
 
+        /// <summary>
+        /// Observe In-Process EventSource events. It's no across ETW.
+        /// </summary>
         public static IObservable<EventWrittenEventArgs> FromEventSource(string eventSourceName, EventLevel level = EventLevel.Verbose, EventKeywords matchAnyKeyword = EventKeywords.None, IDictionary<string, string> arguments = null)
         {
             if (eventSourceName == null) throw new ArgumentNullException("eventSourceName");

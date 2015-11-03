@@ -11,9 +11,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.ConsoleViewer", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{492B475A-D99D-4C78-B707-45DFCB290BF4}"
 	ProjectSection(SolutionItems) = preProject
+		.nuget\EtwStream.LinqPad.nuspec = .nuget\EtwStream.LinqPad.nuspec
+		.nuget\EtwStream.nuspec = .nuget\EtwStream.nuspec
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
+		.nuget\pack.bat = .nuget\pack.bat
+		.nuget\push.bat = .nuget\push.bat
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.LinqPad", "EtwStream.LinqPad\EtwStream.LinqPad.csproj", "{7482323F-72A0-4F8D-A3B5-D15822D32627}"

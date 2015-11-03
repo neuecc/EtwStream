@@ -2,6 +2,7 @@
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Runtime.Caching;
 using System.Text;
 using LINQPad;
 using Microsoft.Diagnostics.Tracing;
@@ -12,6 +13,25 @@ namespace EtwStream
     {
         // TraceEvent
 
+        static MemoryCache processNameCache = new MemoryCache("LinqPadProcessNameCache");
+
+        static string GetProcessName(int processId)
+        {
+            var processName = processNameCache.Get(processId.ToString());
+
+            if (processName != null) return (string)processName;
+            try
+            {
+                var process = System.Diagnostics.Process.GetProcessById(processId);
+                processName = process.ProcessName;
+                processNameCache.Add(processId.ToString(), processName, DateTimeOffset.Now.AddSeconds(5));
+            }
+            catch
+            {
+            }
+            return "";
+        }
+
         static object WithColorStyle(object o, TraceEvent traceEvent)
         {
             var color = traceEvent.GetColorMap(isBackgroundWhite: true);
@@ -20,13 +40,43 @@ namespace EtwStream
             return Util.WithStyle(o, "color:" + color.ToString());
         }
 
-        public static IObservable<object> WithColor(this IObservable<TraceEvent> source, bool withProviderName = false)
+        public static IObservable<object> WithColor(this IObservable<TraceEvent> source, bool withProviderName = false, bool withProcessName = false)
         {
+            Util.AutoScrollResults = true; // force autoscroll on
+
             var newSource = source.Select(x =>
             {
                 var message = x.DumpPayloadOrMessage();
 
-                if (withProviderName)
+                if (withProcessName && withProviderName)
+                {
+                    // ignore LINQPad self
+                    var processName = GetProcessName(x.ProcessID);
+                    if (processName == "LINQPad" || processName == "LINQPad.UserQuery") return null;
+
+                    return (object)new
+                    {
+                        Timestamp = WithColorStyle(x.TimeStamp, x),
+                        ProcessName = WithColorStyle(processName, x),
+                        ProviderName = WithColorStyle(x.ProviderName, x),
+                        EventName = WithColorStyle(x.EventName, x),
+                        Message = WithColorStyle(message, x)
+                    };
+                }
+                else if (withProcessName)
+                {
+                    var processName = GetProcessName(x.ProcessID);
+                    if (processName == "LINQPad" || processName == "LINQPad.UserQuery") return null;
+
+                    return (object)new
+                    {
+                        Timestamp = WithColorStyle(x.TimeStamp, x),
+                        ProcessName = WithColorStyle(processName, x),
+                        EventName = WithColorStyle(x.EventName, x),
+                        Message = WithColorStyle(message, x)
+                    };
+                }
+                else if (withProviderName)
                 {
                     return (object)new
                     {
@@ -45,23 +95,23 @@ namespace EtwStream
                         Message = WithColorStyle(message, x)
                     };
                 }
-            });
+            })
+            .Where(x => x != null);
 
             var connectable = newSource.Replay();
             var disposable = connectable.Connect();
 
-            // TODO:no needs dispose?
             Util.Cleanup += (sender, e) =>
             {
                 disposable.Dispose(); // finish
             };
 
-            return newSource;
+            return connectable.AsObservable();
         }
 
-        public static IObservable<object> DumpToColor(this IObservable<TraceEvent> source, bool withProviderName = false)
+        public static IObservable<object> DumpWithColor(this IObservable<TraceEvent> source, bool withProviderName = false, bool withProcessName = false)
         {
-            return LINQPad.Extensions.Dump(WithColor(source, withProviderName));
+            return LINQPad.Extensions.Dump(WithColor(source, withProviderName, withProcessName));
         }
 
         // EventWrittenEventArgs
@@ -76,11 +126,13 @@ namespace EtwStream
 
         public static IObservable<object> WithColor(this IObservable<EventWrittenEventArgs> source, bool withProviderName = false)
         {
+            Util.AutoScrollResults = true; // force autoscroll on
+
             var newSource = source.Select(x =>
             {
                 var timestamp = DateTime.Now;
                 var message = x.DumpPayloadOrMessage();
-                
+
                 if (withProviderName)
                 {
                     return (object)new
@@ -105,16 +157,15 @@ namespace EtwStream
             var connectable = newSource.Replay();
             var disposable = connectable.Connect();
 
-            // TODO:no needs dispose?
             Util.Cleanup += (sender, e) =>
             {
                 disposable.Dispose(); // finish
             };
 
-            return newSource;
+            return connectable.AsObservable();
         }
 
-        public static IObservable<object> DumpToColor(this IObservable<EventWrittenEventArgs> source, bool withProviderName = false)
+        public static IObservable<object> DumpWithColor(this IObservable<EventWrittenEventArgs> source, bool withProviderName = false)
         {
             return LINQPad.Extensions.Dump(WithColor(source, withProviderName));
         }

@@ -15,23 +15,26 @@ namespace EtwStream
         const TraceEventID ManifestEventID = (TraceEventID)0xFFFE;
 
         /// <summary>
-        /// Observer Out-of-Process ETW Realtime session by provider Name.
+        /// Observe Out-of-Process ETW Realtime session by provider Name or string Guid.
         /// </summary>
-        /// <param name="providerName">e.g.'MyEventSource'</param>
-        public static IObservable<TraceEvent> FromTraceEvent(string providerName)
+        /// <param name="providerNameOrGuid">e.g.'MyEventSource'</param>
+        public static IObservable<TraceEvent> FromTraceEvent(string providerNameOrGuid)
         {
-            return FromTraceEvent(TraceEventProviders.GetEventSourceGuidFromName(providerName));
+            Guid guid;
+            return Guid.TryParse(providerNameOrGuid, out guid)
+                ? FromTraceEvent(guid)
+                : FromTraceEvent(TraceEventProviders.GetEventSourceGuidFromName(providerNameOrGuid));
         }
 
         /// <summary>
-        /// Observer Out-of-Process ETW Realtime session by provider Guid.
+        /// Observe Out-of-Process ETW Realtime session by provider Guid.
         /// </summary>
         /// <param name="providerGuid">e.g.'2e5dba47-a3d2-4d16-8ee0-6671ffdcd7b5'</param>
         public static IObservable<TraceEvent> FromTraceEvent(Guid providerGuid)
         {
             IConnectableObservable<TraceEvent> source;
 
-            var session = new TraceEventSession("ObservableEventListenerFromTraceEventSession." + providerGuid.ToString());
+            var session = new TraceEventSession("ObservableEventListenerFromTraceEventSession." + Guid.NewGuid().ToString());
             var sessionName = session.SessionName;
 
             try
@@ -50,26 +53,25 @@ namespace EtwStream
 
             Task.Factory.StartNew(() =>
             {
-                try
+                using (session)
                 {
                     session.Source.Process();
-                }
-                finally
-                {
-                    session.Dispose();
                 }
             }, TaskCreationOptions.LongRunning);
 
             return source.RefCount();
         }
 
+        /// <summary>
+        /// Observe Out-of-Process ETW Realtime session by specified TraceEventParser.
+        /// </summary>
         public static IObservable<TData> FromTraceEvent<TParser, TData>()
             where TParser : TraceEventParser
             where TData : TraceEvent
         {
             IConnectableObservable<TData> source;
 
-            var session = new TraceEventSession("ObservableEventListenerFromTraceEventSessionWithParser");
+            var session = new TraceEventSession("ObservableEventListenerFromTraceEventSessionWithParser." + Guid.NewGuid().ToString());
             try
             {
                 var parser = (TraceEventParser)typeof(TParser).GetConstructor(new[] { typeof(TraceEventSource) }).Invoke(new[] { session.Source });
@@ -95,13 +97,13 @@ namespace EtwStream
         }
 
         /// <summary>
-        /// Observer Out-of-Process ETW Realtime session from clr event.
+        /// Observe Out-of-Process ETW CLR TraceEvent.
         /// </summary>
         public static IObservable<TraceEvent> FromClrTraceEvent()
         {
             IConnectableObservable<TraceEvent> source;
 
-            var session = new TraceEventSession("ObservableEventListenerFromClrTraceEventSession");
+            var session = new TraceEventSession("ObservableEventListenerFromClrTraceEventSession." + Guid.NewGuid().ToString());
             try
             {
                 var guid = Microsoft.Diagnostics.Tracing.Parsers.ClrTraceEventParser.ProviderGuid;
@@ -128,19 +130,22 @@ namespace EtwStream
             return source.RefCount();
         }
 
+        /// <summary>
+        /// Observe Out-of-Process ETW Kernel TraceEvent.
+        /// </summary>
         public static IObservable<TraceEvent> FromKernelTraceEvent(KernelTraceEventParser.Keywords flags, KernelTraceEventParser.Keywords stackCapture = KernelTraceEventParser.Keywords.None)
         {
             IConnectableObservable<TraceEvent> source;
 
-            var session = new TraceEventSession("ObservableEventListenerFromKernelTraceEventSession");
+            var session = new TraceEventSession("ObservableEventListenerFromKernelTraceEventSession." + Guid.NewGuid().ToString());
             try
             {
                 var guid = KernelTraceEventParser.ProviderGuid;
+                session.EnableKernelProvider(flags, stackCapture); // needs enable before observe
                 source = session.Source.Kernel.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
                     .Where(x => x.ProviderGuid == guid && x.EventName != ManifestEventName && x.ID != ManifestEventID)
                     .Finally(() => session.Dispose())
                     .Publish();
-                session.EnableKernelProvider(flags, stackCapture);
             }
             catch
             {
@@ -159,15 +164,18 @@ namespace EtwStream
             return source.RefCount();
         }
 
+        /// <summary>
+        /// Observe Out-of-Process ETW Kernel TraceEvent.
+        /// </summary>
         public static IObservable<TData> FromKernelTraceEvent<TData>(KernelTraceEventParser.Keywords flags, KernelTraceEventParser.Keywords stackCapture = KernelTraceEventParser.Keywords.None)
             where TData : TraceEvent
         {
             IConnectableObservable<TData> source;
-            var session = new TraceEventSession("ObservableEventListenerFromTraceEventSession");
+            var session = new TraceEventSession("ObservableEventListenerFromKernelTraceEventSession." + Guid.NewGuid().ToString());
             try
             {
-                source = session.Source.Kernel.Observe<TData>().Finally(() => session.Dispose()).Publish();
                 session.EnableKernelProvider(flags, stackCapture);
+                source = session.Source.Kernel.Observe<TData>().Finally(() => session.Dispose()).Publish();
             }
             catch
             {

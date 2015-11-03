@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>EtwStream</id>
+        <version>1.0.0</version>
+        <title>EtwStream</title>
+        <authors>neuecc</authors>
+        <owners>neuecc</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Logs are event streams. EtwStream provides In-Process and Out-of-Process ObservableEventListener. Everything can compose and output to anywhere by Reactive Extensions.</description>
+        <releaseNotes>
+            <![CDATA[
+Initial Release.
+            ]]>
+        </releaseNotes>
+        <language>en-US</language>
+        <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+        <projectUrl>https://github.com/neuecc/EtwStream</projectUrl>
+        <tags>ETW TraceEvent EventSource</tags>
+        <dependencies>
+            <dependency id="Microsoft.Diagnostics.Tracing.TraceEvent" version="1.0.39" />
+            <dependency id="Rx-Main" version="2.2.5" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\EtwStream.Core\bin\Release\EtwStream.Core.dll" target="lib" />
+        <file src="..\EtwStream.Core\bin\Release\EtwStream.Core.xml" target="lib" />
+    </files>
+</package>
