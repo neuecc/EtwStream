@@ -202,7 +202,10 @@ This is basic definition. Next step, you should define own method for structured
 
 How to save log to file? Where is Out-of-Process Service?
 ---
-EtwStream currently no provides FileSink, Out-of-Processs Service. Please use [Semantic Logging Application Block](https://msdn.microsoft.com/en-us/library/dn440729.aspx) or [Serilog](http://serilog.net/).
+EtwStream currently no provides FileSink, Out-of-Process Service. Please use [Semantic Logging Application Block](https://msdn.microsoft.com/en-us/library/dn440729.aspx) or [Serilog](http://serilog.net/).
+
+But I will create new style of Out-of-Process Service configuration with Roslyn C# Scripting API and sinks.  - https://github.com/neuecc/EtwStream/issues/2
+Please wait a moment.
 
 Wellknown EventSources
 ---
