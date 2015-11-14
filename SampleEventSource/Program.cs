@@ -214,8 +214,11 @@ namespace SampleEventSource
             };
 
             Console.WriteLine("1~6:msg");
+            // var i = 0;
             while (true)
             {
+                // LoggerEventSource.Log.Write("start new event", new { count = i++ });
+
                 var measure = LoggerEventSource.Log.MeasureExecution("Readtime");
 
                 var msg = Console.ReadLine();

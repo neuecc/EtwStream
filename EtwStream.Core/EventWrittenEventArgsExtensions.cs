@@ -11,36 +11,6 @@ namespace EtwStream
 {
     public static class EventWrittenEventArgsExtensions
     {
-        // { EventSource : { EventId, PayloadNames[] } }
-        readonly static ConcurrentDictionary<System.Diagnostics.Tracing.EventSource, ReadOnlyDictionary<int, ReadOnlyCollection<string>>> cache = new ConcurrentDictionary<System.Diagnostics.Tracing.EventSource, ReadOnlyDictionary<int, ReadOnlyCollection<string>>>();
-
-        public static ReadOnlyCollection<string> GetPayloadNames(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
-        {
-            var source = eventArgs.EventSource;
-            var templates = cache.GetOrAdd(source, s => // no needs lock
-            {
-                var manifest = System.Diagnostics.Tracing.EventSource.GenerateManifest(s.GetType(), null);
-
-                var xElem = XElement.Parse(manifest);
-                var ns = xElem.Name.Namespace;
-
-                // { tid : eventId }
-                var tidRef = xElem.Descendants(ns + "event")
-                    .ToDictionary(x => x.Attribute("template").Value, x => x.Attribute("value").Value);
-
-                var dict = xElem.Descendants(ns + "template")
-                     .ToDictionary(
-                        x => int.Parse(tidRef[x.Attribute("tid").Value]),
-                        x => new ReadOnlyCollection<string>(x.Elements(ns + "data")
-                            .Select(y => y.Attribute("name").Value)
-                            .ToArray()));
-
-                return new ReadOnlyDictionary<int, ReadOnlyCollection<string>>(dict);
-            });
-
-            return templates[eventArgs.EventId];
-        }
-
         public static string DumpFormattedMessage(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
             var msg = eventArgs.Message;
@@ -51,7 +21,7 @@ namespace EtwStream
 
         public static string DumpPayload(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
-            var names = eventArgs.GetPayloadNames();
+            var names = eventArgs.PayloadNames;
 
             var sb = new StringBuilder();
             sb.Append("{");
