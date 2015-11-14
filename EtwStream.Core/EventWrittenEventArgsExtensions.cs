@@ -41,6 +41,14 @@ namespace EtwStream
             return templates[eventArgs.EventId];
         }
 
+        public static string DumpFormattedMessage(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
+        {
+            var msg = eventArgs.Message;
+            if (string.IsNullOrWhiteSpace(msg)) return msg;
+
+            return string.Format(msg, eventArgs.Payload.ToArray());
+        }
+
         public static string DumpPayload(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
             var names = eventArgs.GetPayloadNames();
@@ -63,7 +71,7 @@ namespace EtwStream
         public static string DumpPayloadOrMessage(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
             var msg = eventArgs.Message;
-            return string.IsNullOrWhiteSpace(msg) ? eventArgs.DumpPayload() : msg;
+            return string.IsNullOrWhiteSpace(msg) ? eventArgs.DumpPayload() : DumpFormattedMessage(eventArgs);
         }
 
         public static ConsoleColor? GetColorMap(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs, bool isBackgroundWhite)

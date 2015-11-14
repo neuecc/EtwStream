@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EtwStream;
-using static System.Net.WebRequestMethods;
 
 namespace SampleEventSource
 {
@@ -191,6 +190,12 @@ namespace SampleEventSource
     {
         static void Main(string[] args)
         {
+            // inprocess listner logging test
+            ObservableEventListener.FromEventSource(LoggerEventSource.Log)
+            //ObservableEventListener.FromTraceEvent(LoggerEventSource.Log.Guid)
+                .Subscribe(x => Console.WriteLine(x.DumpPayloadOrMessage()));
+
+
             // var providingIndex = 0;
             var providingMessages = new[]
             {
