@@ -69,7 +69,6 @@ namespace EtwStream.ConsoleViewer
                        : ObservableEventListener.FromTraceEvent(nameOrGuid);
                 }
 
-                cts = new CancellationTokenSource();
                 var subscription = eventListener
                     .ForEachAsync(x =>
                     {

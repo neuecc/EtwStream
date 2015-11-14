@@ -67,9 +67,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventWrittenEventArgsExtensions.cs" />
+    <Compile Include="Sinks\TraceSink.cs" />
+    <Compile Include="Sinks\DebugSink.cs" />
+    <Compile Include="TerminateToken.cs" />
     <Compile Include="ObservableEventListener.EventSource.cs" />
     <Compile Include="ObservableEventListener.TraceEvent.cs" />
+    <Compile Include="EtwStreamObservableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sinks\ConsoleSink.cs" />
+    <Compile Include="Sinks\SinkBase.cs" />
     <Compile Include="TraceEventExtensions.cs" />
     <Compile Include="WellKnownEventSources.cs" />
   </ItemGroup>

@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.LinqPad", "EtwStr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleEventSource", "SampleEventSource\SampleEventSource.csproj", "{451C33DB-7E55-4769-8F1F-DB70503A1107}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.Service", "EtwStream.Service\EtwStream.Service.csproj", "{0D5B543D-5156-43BC-AEDB-97D3404A8DAE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{451C33DB-7E55-4769-8F1F-DB70503A1107}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{451C33DB-7E55-4769-8F1F-DB70503A1107}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{451C33DB-7E55-4769-8F1F-DB70503A1107}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D5B543D-5156-43BC-AEDB-97D3404A8DAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D5B543D-5156-43BC-AEDB-97D3404A8DAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D5B543D-5156-43BC-AEDB-97D3404A8DAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D5B543D-5156-43BC-AEDB-97D3404A8DAE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

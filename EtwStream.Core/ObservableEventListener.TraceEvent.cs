@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
@@ -33,7 +34,6 @@ namespace EtwStream
         public static IObservable<TraceEvent> FromTraceEvent(Guid providerGuid)
         {
             IConnectableObservable<TraceEvent> source;
-
             var session = new TraceEventSession("ObservableEventListenerFromTraceEventSession." + Guid.NewGuid().ToString());
             var sessionName = session.SessionName;
 
@@ -235,6 +235,20 @@ namespace EtwStream
             }, TaskCreationOptions.LongRunning);
 
             return source.RefCount();
+        }
+
+        public static void ClearAllActiveObservableEventListenerSession()
+        {
+            var activeSessions = TraceEventSession.GetActiveSessionNames()
+                .Where(x => x.StartsWith("ObservableEventListener"))
+                .Select(x => TraceEventSession.GetActiveSession(x));
+            var activeCount = 0;
+            foreach (var item in activeSessions)
+            {
+                item.Dispose();
+                activeCount++;
+            }
+            Console.WriteLine("ActiveSession's Count:" + activeCount);
         }
     }
 }
