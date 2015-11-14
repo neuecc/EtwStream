@@ -191,14 +191,7 @@ namespace SampleEventSource
     {
         static void Main(string[] args)
         {
-            ObservableEventListener.FromKernelTraceEvent(Microsoft.Diagnostics.Tracing.Parsers.KernelTraceEventParser.Keywords.Default)
-                .Subscribe(x =>
-                {
-                    Console.WriteLine(x);
-                });
-
-
-            var providingIndex = 0;
+            // var providingIndex = 0;
             var providingMessages = new[]
             {
                 "1:Hello EtwStream",
@@ -220,9 +213,10 @@ namespace SampleEventSource
             {
                 var measure = LoggerEventSource.Log.MeasureExecution("Readtime");
 
-                // var msg = Console.ReadLine();
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-                var msg = providingMessages[providingIndex++];
+                var msg = Console.ReadLine();
+
+                // Thread.Sleep(TimeSpan.FromSeconds(1));
+                //var msg = providingMessages[providingIndex++];
 
                 var split = msg.Split(':');
                 var id = int.Parse(split[0]);

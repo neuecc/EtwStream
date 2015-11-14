@@ -97,6 +97,49 @@ namespace EtwStream
         }
 
         /// <summary>
+        /// Observe Out-of-Process ETW Registered TraceEvent by provider Guid.
+        /// </summary>
+        /// <param name="providerGuid">e.g.'36da592d-e43a-4e28-af6f-4bc57c5a11e8'</param>
+        public static IObservable<TraceEvent> FromRegisteredTraceEvent(string providerGuid)
+        {
+            return FromRegisteredTraceEvent(Guid.Parse(providerGuid));
+        }
+
+        /// <summary>
+        /// Observe Out-of-Process ETW Registered TraceEvent by provider Guid.
+        /// </summary>
+        public static IObservable<TraceEvent> FromRegisteredTraceEvent(Guid providerGuid)
+        {
+            IConnectableObservable<TraceEvent> source;
+            var session = new TraceEventSession("ObservableEventListenerFromRegisteredTraceEventSession." + Guid.NewGuid().ToString());
+            var sessionName = session.SessionName;
+
+            try
+            {
+                source = session.Source.Registered.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
+                    .Where(x => x.ProviderGuid == providerGuid && x.EventName != ManifestEventName && x.ID != ManifestEventID)
+                    .Finally(() => session.Dispose())
+                    .Publish();
+                session.EnableProvider(providerGuid);
+            }
+            catch
+            {
+                session.Dispose();
+                throw;
+            }
+
+            Task.Factory.StartNew(() =>
+            {
+                using (session)
+                {
+                    session.Source.Process();
+                }
+            }, TaskCreationOptions.LongRunning);
+
+            return source.RefCount();
+        }
+
+        /// <summary>
         /// Observe Out-of-Process ETW CLR TraceEvent.
         /// </summary>
         public static IObservable<TraceEvent> FromClrTraceEvent()
