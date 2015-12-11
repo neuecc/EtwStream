@@ -76,6 +76,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sinks\ConsoleSink.cs" />
     <Compile Include="Sinks\SinkBase.cs" />
+    <Compile Include="Json\TinyJson.cs" />
     <Compile Include="TraceEventExtensions.cs" />
     <Compile Include="WellKnownEventSources.cs" />
   </ItemGroup>
@@ -84,6 +85,7 @@
     <None Include="EtwStream.snk" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

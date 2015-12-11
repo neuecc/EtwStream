@@ -35,6 +35,26 @@ namespace EtwStream
             return source.Do(new TraceEventSink(messageFormatter)).ToTask();
         }
 
+        public static IDisposable LogToConsole(this IObservable<IList<TraceEvent>> source)
+        {
+            return source.Subscribe(new TraceEventSink(x => x.EventName + ": " + x.DumpPayloadOrMessage()));
+        }
+
+        public static IDisposable LogToConsole(this IObservable<IList<TraceEvent>> source, Func<TraceEvent, string> messageFormatter)
+        {
+            return source.Subscribe(new TraceEventSink(messageFormatter));
+        }
+
+        public static Task LogToConsoleAsync(this IObservable<IList<TraceEvent>> source)
+        {
+            return source.Do(new TraceEventSink(x => x.EventName + ": " + x.DumpPayloadOrMessage())).ToTask();
+        }
+
+        public static Task LogToConsoleAsync(this IObservable<IList<TraceEvent>> source, Func<TraceEvent, string> messageFormatter)
+        {
+            return source.Do(new TraceEventSink(messageFormatter)).ToTask();
+        }
+
         // EventArgs
 
         public static IDisposable LogToConsole(this IObservable<EventWrittenEventArgs> source)
@@ -57,6 +77,26 @@ namespace EtwStream
             return source.Do(new EventWrittenEventArgsSink(messageFormatter)).ToTask();
         }
 
+        public static IDisposable LogToConsole(this IObservable<IList<EventWrittenEventArgs>> source)
+        {
+            return source.Subscribe(new EventWrittenEventArgsSink(x => x.EventName + ": " + x.DumpPayloadOrMessage()));
+        }
+
+        public static IDisposable LogToConsole(this IObservable<IList<EventWrittenEventArgs>> source, Func<EventWrittenEventArgs, string> messageFormatter)
+        {
+            return source.Subscribe(new EventWrittenEventArgsSink(messageFormatter));
+        }
+
+        public static Task LogToConsoleAsync(this IObservable<IList<EventWrittenEventArgs>> source)
+        {
+            return source.Do(new EventWrittenEventArgsSink(x => x.EventName + ": " + x.DumpPayloadOrMessage())).ToTask();
+        }
+
+        public static Task LogToConsoleAsync(this IObservable<IList<EventWrittenEventArgs>> source, Func<EventWrittenEventArgs, string> messageFormatter)
+        {
+            return source.Do(new EventWrittenEventArgsSink(messageFormatter)).ToTask();
+        }
+
         // String
 
         public static IDisposable LogToConsole(this IObservable<string> source)
@@ -65,6 +105,16 @@ namespace EtwStream
         }
 
         public static Task LogToConsoleAsync(this IObservable<string> source)
+        {
+            return source.Do(x => Console.WriteLine(x)).ToTask();
+        }
+
+        public static IDisposable LogToConsole(this IObservable<IList<string>> source)
+        {
+            return source.Subscribe(x => Console.WriteLine(x));
+        }
+
+        public static Task LogToConsoleAsync(this IObservable<IList<string>> source)
         {
             return source.Do(x => Console.WriteLine(x)).ToTask();
         }

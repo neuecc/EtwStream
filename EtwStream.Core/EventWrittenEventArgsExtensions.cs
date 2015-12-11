@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Tracing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -62,6 +63,29 @@ namespace EtwStream
                     return isBackgroundWhite ? ConsoleColor.Black : ConsoleColor.White;
                 default:
                     return null;
+            }
+        }
+
+        public static string ToJson(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
+        {
+            var names = eventArgs.PayloadNames;
+            var count = names.Count;
+
+            using (var sw = new StringWriter())
+            using (var jw = new Json.TinyJsonWriter(sw))
+            {
+                jw.WriteStartObject();
+                for (int i = 0; i < count; i++)
+                {
+                    var name = names[i];
+                    var value = eventArgs.Payload[i];
+
+                    jw.WritePropertyName(name);
+                    jw.WriteValue(value);
+                }
+                jw.WriteEndObject();
+                sw.Flush();
+                return sw.ToString();
             }
         }
     }

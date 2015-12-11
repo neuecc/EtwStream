@@ -12,24 +12,24 @@ namespace EtwStream.Service
     {
         int timeoutMilliseconds = 3000;
         CancellationTokenSource source;
-        ScriptingCompletion completion;
+        TaskContainer taskContainer;
 
         public OutOfProcessService()
         {
             this.source = new CancellationTokenSource();
         }
 
-        public async void Start()
+        public void Start()
         {
             try
             {
                 var evaluator = new ScriptingEvaluator();
-                var t = Interlocked.Exchange(ref completion, null);
+                var t = Interlocked.Exchange(ref taskContainer, null);
                 if (t != null)
                 {
                     t.WaitComplete(timeoutMilliseconds);
                 }
-                completion = await evaluator.EvaluateAsync(source.Token);
+                taskContainer = evaluator.EvaluateAsync(source.Token).Result;
             }
             catch (Exception ex)
             {
@@ -41,7 +41,7 @@ namespace EtwStream.Service
         public void Stop()
         {
             source.Cancel(); // send terminate event
-            var t = Interlocked.Exchange(ref completion, null);
+            var t = Interlocked.Exchange(ref taskContainer, null);
             if (t != null)
             {
                 t.WaitComplete(timeoutMilliseconds);

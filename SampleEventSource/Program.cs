@@ -193,7 +193,7 @@ namespace SampleEventSource
             // inprocess listner logging test
             ObservableEventListener.FromEventSource(LoggerEventSource.Log)
             //ObservableEventListener.FromTraceEvent(LoggerEventSource.Log.Guid)
-                .Subscribe(x => Console.WriteLine(x.DumpPayloadOrMessage()));
+                .Subscribe(x => Console.WriteLine(x.ToJson()));
 
 
             // var providingIndex = 0;

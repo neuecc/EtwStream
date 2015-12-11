@@ -4,8 +4,8 @@ using System.IO;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
 
 namespace EtwStream.Service
 {
@@ -23,7 +23,7 @@ namespace EtwStream.Service
             return code;
         }
 
-        public async Task<ScriptingCompletion> EvaluateAsync(CancellationToken terminateToken)
+        public async Task<TaskContainer> EvaluateAsync(CancellationToken terminateToken)
         {
             // TODO:read code
             var code = LoadScript("configuration.csx");
@@ -39,7 +39,7 @@ namespace EtwStream.Service
                     typeof(ObservableEventListener).Assembly,
                     typeof(Microsoft.Diagnostics.Tracing.TraceEvent).Assembly
                 })
-                .AddNamespaces(
+                .WithImports(
                     "System",
                     "System.Linq",
                     "System.Collections.Generic",
@@ -54,47 +54,57 @@ namespace EtwStream.Service
                 EtwStreamService = new EtwStreamService(terminateToken, new Dictionary<string, string>())
             };
 
-            var result = await CSharpScript.EvaluateAsync(code, options, globalParameter, typeof(Globals), terminateToken).ConfigureAwait(false);
-            var completion = result as ScriptingCompletion;
-            if (completion == null)
-            {
-                // TODO:Exception
-                throw new InvalidOperationException("last line must returns EtwStreamService.CompleteConfiguration(all ObservableEventListener's subscriptions)");
-            }
+            await CSharpScript.EvaluateAsync(code, options, globalParameter, typeof(Globals), terminateToken).ConfigureAwait(false);
 
-            return completion;
+            return globalParameter.EtwStreamService.TaskContainer;
         }
     }
 
     public class EtwStreamService
     {
         public CancellationToken TerminateToken { get; }
+        public TaskContainer TaskContainer { get; }
         public IReadOnlyDictionary<string, string> AppConfig { get; }
-
-        public ScriptingCompletion CompleteConfiguration(params Task[] asyncSubscriptions)
-        {
-            return new ScriptingCompletion(asyncSubscriptions);
-        }
 
         public EtwStreamService(CancellationToken terminateToken, IReadOnlyDictionary<string, string> appConfig)
         {
             this.TerminateToken = terminateToken;
             this.AppConfig = appConfig;
+            this.TaskContainer = new TaskContainer();
         }
     }
 
-    public class ScriptingCompletion
+    public class TaskContainer
     {
-        public Task[] AsyncSubscriptions { get; }
+        List<Task> list = new List<Task>();
 
-        public ScriptingCompletion(Task[] asyncSubscriptions)
+        public void Add(Task task)
         {
-            this.AsyncSubscriptions = asyncSubscriptions;
+            lock (list)
+            {
+                list.Add(task);
+            }
         }
 
-        public void WaitComplete(int millisecondsTimeout)
+        internal void WaitComplete(int millisecondsTimeout)
         {
-            Task.WaitAll(AsyncSubscriptions, millisecondsTimeout);
+            Task[] array;
+            lock (list)
+            {
+                array = list.ToArray();
+            }
+            Task.WaitAll(array, millisecondsTimeout);
+        }
+    }
+}
+
+namespace EtwStream
+{
+    public static class TaskEtwStreamServiceExtensions
+    {
+        public static void AddTo(this Task task, EtwStream.Service.TaskContainer container)
+        {
+            container.Add(task);
         }
     }
 }

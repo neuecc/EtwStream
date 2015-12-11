@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,6 +54,29 @@ namespace EtwStream
         {
             var msg = traceEvent.FormattedMessage;
             return string.IsNullOrWhiteSpace(msg) ? traceEvent.DumpPayload() : msg;
+        }
+
+        public static string ToJson(this TraceEvent traceEvent)
+        {
+            var names = traceEvent.PayloadNames;
+            var count = names.Length;
+
+            using (var sw = new StringWriter())
+            using (var jw = new Json.TinyJsonWriter(sw))
+            {
+                jw.WriteStartObject();
+                for (int i = 0; i < count; i++)
+                {
+                    var name = names[i];
+                    var value = traceEvent.PayloadValue(i);
+
+                    jw.WritePropertyName(name);
+                    jw.WriteValue(value);
+                }
+                jw.WriteEndObject();
+                sw.Flush();
+                return sw.ToString();
+            }
         }
     }
 }
