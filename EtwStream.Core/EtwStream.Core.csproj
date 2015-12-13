@@ -66,7 +66,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EtwStreamEventSource.cs" />
     <Compile Include="EventWrittenEventArgsExtensions.cs" />
+    <Compile Include="Sinks\AsyncFileWriter.cs" />
+    <Compile Include="Sinks\RollingFileSink.cs" />
+    <Compile Include="Sinks\FileSink.cs" />
     <Compile Include="Sinks\TraceSink.cs" />
     <Compile Include="Sinks\DebugSink.cs" />
     <Compile Include="TerminateToken.cs" />

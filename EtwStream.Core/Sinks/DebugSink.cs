@@ -26,16 +26,6 @@ namespace EtwStream
             return source.Subscribe(x => Debug.WriteLine(messageFormatter(x)));
         }
 
-        public static Task LogToDebugAsync(this IObservable<TraceEvent> source)
-        {
-            return source.Do(x => Debug.WriteLine(x.EventName + ": " + x.DumpPayloadOrMessage())).ToTask();
-        }
-
-        public static Task LogToDebugAsync(this IObservable<TraceEvent> source, Func<TraceEvent, string> messageFormatter)
-        {
-            return source.Do(x => Debug.WriteLine(messageFormatter(x))).ToTask();
-        }
-
         // EventArgs
 
         public static IDisposable LogToDebug(this IObservable<EventWrittenEventArgs> source)
@@ -48,26 +38,11 @@ namespace EtwStream
             return source.Subscribe(x => Debug.WriteLine(messageFormatter(x)));
         }
 
-        public static Task LogToDebugAsync(this IObservable<EventWrittenEventArgs> source)
-        {
-            return source.Do(x => Debug.WriteLine(x.EventName + ": " + x.DumpPayloadOrMessage())).ToTask();
-        }
-
-        public static Task LogToDebugAsync(this IObservable<EventWrittenEventArgs> source, Func<EventWrittenEventArgs, string> messageFormatter)
-        {
-            return source.Do(x => Debug.WriteLine(messageFormatter(x))).ToTask();
-        }
-
         // String
 
         public static IDisposable LogToDebug(this IObservable<string> source)
         {
             return source.Subscribe(x => Debug.WriteLine(x));
-        }
-
-        public static Task LogToDebugAsync(this IObservable<string> source)
-        {
-            return source.Do(x => Debug.WriteLine(x)).ToTask();
         }
     }
 }

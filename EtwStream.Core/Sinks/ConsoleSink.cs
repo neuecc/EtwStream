@@ -17,84 +17,60 @@ namespace EtwStream
 
         public static IDisposable LogToConsole(this IObservable<TraceEvent> source)
         {
-            return source.Subscribe(new TraceEventSink(x => x.EventName + ": " + x.DumpPayloadOrMessage()));
+            var sink = new TraceEventSink(x => x.EventName + ": " + x.DumpPayloadOrMessage());
+            var subscription = source.Subscribe(sink);
+            return sink.CreateLinkedDisposable(subscription);
         }
 
         public static IDisposable LogToConsole(this IObservable<TraceEvent> source, Func<TraceEvent, string> messageFormatter)
         {
-            return source.Subscribe(new TraceEventSink(messageFormatter));
-        }
-
-        public static Task LogToConsoleAsync(this IObservable<TraceEvent> source)
-        {
-            return source.Do(new TraceEventSink(x => x.EventName + ": " + x.DumpPayloadOrMessage())).ToTask();
-        }
-
-        public static Task LogToConsoleAsync(this IObservable<TraceEvent> source, Func<TraceEvent, string> messageFormatter)
-        {
-            return source.Do(new TraceEventSink(messageFormatter)).ToTask();
+            var sink = new TraceEventSink(messageFormatter);
+            var subscription = source.Subscribe(sink);
+            return sink.CreateLinkedDisposable(subscription);
         }
 
         public static IDisposable LogToConsole(this IObservable<IList<TraceEvent>> source)
         {
-            return source.Subscribe(new TraceEventSink(x => x.EventName + ": " + x.DumpPayloadOrMessage()));
+            var sink = new TraceEventSink(x => x.EventName + ": " + x.DumpPayloadOrMessage());
+            var subscription = source.Subscribe(sink);
+            return sink.CreateLinkedDisposable(subscription);
         }
 
         public static IDisposable LogToConsole(this IObservable<IList<TraceEvent>> source, Func<TraceEvent, string> messageFormatter)
         {
-            return source.Subscribe(new TraceEventSink(messageFormatter));
-        }
-
-        public static Task LogToConsoleAsync(this IObservable<IList<TraceEvent>> source)
-        {
-            return source.Do(new TraceEventSink(x => x.EventName + ": " + x.DumpPayloadOrMessage())).ToTask();
-        }
-
-        public static Task LogToConsoleAsync(this IObservable<IList<TraceEvent>> source, Func<TraceEvent, string> messageFormatter)
-        {
-            return source.Do(new TraceEventSink(messageFormatter)).ToTask();
+            var sink = new TraceEventSink(messageFormatter);
+            var subscription = source.Subscribe(sink);
+            return sink.CreateLinkedDisposable(subscription);
         }
 
         // EventArgs
 
         public static IDisposable LogToConsole(this IObservable<EventWrittenEventArgs> source)
         {
-            return source.Subscribe(new EventWrittenEventArgsSink(x => x.EventName + ": " + x.DumpPayloadOrMessage()));
+            var sink = new EventWrittenEventArgsSink(x => x.EventName + ": " + x.DumpPayloadOrMessage());
+            var subscription = source.Subscribe(sink);
+            return sink.CreateLinkedDisposable(subscription);
         }
 
         public static IDisposable LogToConsole(this IObservable<EventWrittenEventArgs> source, Func<EventWrittenEventArgs, string> messageFormatter)
         {
-            return source.Subscribe(new EventWrittenEventArgsSink(messageFormatter));
-        }
-
-        public static Task LogToConsoleAsync(this IObservable<EventWrittenEventArgs> source)
-        {
-            return source.Do(new EventWrittenEventArgsSink(x => x.EventName + ": " + x.DumpPayloadOrMessage())).ToTask();
-        }
-
-        public static Task LogToConsoleAsync(this IObservable<EventWrittenEventArgs> source, Func<EventWrittenEventArgs, string> messageFormatter)
-        {
-            return source.Do(new EventWrittenEventArgsSink(messageFormatter)).ToTask();
+            var sink = new EventWrittenEventArgsSink(messageFormatter);
+            var subscription = source.Subscribe(sink);
+            return sink.CreateLinkedDisposable(subscription);
         }
 
         public static IDisposable LogToConsole(this IObservable<IList<EventWrittenEventArgs>> source)
         {
-            return source.Subscribe(new EventWrittenEventArgsSink(x => x.EventName + ": " + x.DumpPayloadOrMessage()));
+            var sink = new EventWrittenEventArgsSink(x => x.EventName + ": " + x.DumpPayloadOrMessage());
+            var subscription = source.Subscribe(sink);
+            return sink.CreateLinkedDisposable(subscription);
         }
 
         public static IDisposable LogToConsole(this IObservable<IList<EventWrittenEventArgs>> source, Func<EventWrittenEventArgs, string> messageFormatter)
         {
-            return source.Subscribe(new EventWrittenEventArgsSink(messageFormatter));
-        }
-
-        public static Task LogToConsoleAsync(this IObservable<IList<EventWrittenEventArgs>> source)
-        {
-            return source.Do(new EventWrittenEventArgsSink(x => x.EventName + ": " + x.DumpPayloadOrMessage())).ToTask();
-        }
-
-        public static Task LogToConsoleAsync(this IObservable<IList<EventWrittenEventArgs>> source, Func<EventWrittenEventArgs, string> messageFormatter)
-        {
-            return source.Do(new EventWrittenEventArgsSink(messageFormatter)).ToTask();
+            var sink = new EventWrittenEventArgsSink(messageFormatter);
+            var subscription = source.Subscribe(sink);
+            return sink.CreateLinkedDisposable(subscription);
         }
 
         // String
@@ -104,19 +80,9 @@ namespace EtwStream
             return source.Subscribe(x => Console.WriteLine(x));
         }
 
-        public static Task LogToConsoleAsync(this IObservable<string> source)
-        {
-            return source.Do(x => Console.WriteLine(x)).ToTask();
-        }
-
         public static IDisposable LogToConsole(this IObservable<IList<string>> source)
         {
             return source.Subscribe(x => Console.WriteLine(x));
-        }
-
-        public static Task LogToConsoleAsync(this IObservable<IList<string>> source)
-        {
-            return source.Do(x => Console.WriteLine(x)).ToTask();
         }
 
         // Sinks
@@ -131,7 +97,7 @@ namespace EtwStream
                 this.messageFormatter = messageFormatter;
             }
 
-            public override void Flush()
+            public override void Dispose()
             {
                 // do nothing
             }
@@ -154,6 +120,7 @@ namespace EtwStream
                         }
                         catch (Exception ex)
                         {
+                            EtwStreamEventSource.Log.SinkError(nameof(ConsoleSink), "messageFormatter convert failed", ex.ToString());
                             Console.WriteLine(ex);
                         }
                         finally
@@ -175,7 +142,7 @@ namespace EtwStream
                 this.messageFormatter = messageFormatter;
             }
 
-            public override void Flush()
+            public override void Dispose()
             {
                 // do nothing
             }
@@ -198,6 +165,7 @@ namespace EtwStream
                         }
                         catch (Exception ex)
                         {
+                            EtwStreamEventSource.Log.SinkError(nameof(ConsoleSink), "messageFormatter convert failed", ex.ToString());
                             Console.WriteLine(ex);
                         }
                         finally

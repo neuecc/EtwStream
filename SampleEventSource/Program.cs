@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EtwStream;
@@ -190,11 +191,24 @@ namespace SampleEventSource
     {
         static void Main(string[] args)
         {
-            // inprocess listner logging test
-            ObservableEventListener.FromEventSource(LoggerEventSource.Log)
-            //ObservableEventListener.FromTraceEvent(LoggerEventSource.Log.Guid)
-                .Subscribe(x => Console.WriteLine(x.ToJson()));
+            ObservableEventListener.ClearAllActiveObservableEventListenerSession();
 
+            ObservableEventListener.FromEventSource(EtwStreamEventSource.Log).LogToConsole();
+
+            var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += (sender, e) =>
+            {
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                Console.WriteLine("GO");
+                cts.Cancel();
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                Console.WriteLine("WAITING");
+            };
+
+            ObservableEventListener.FromTraceEvent("SampleEventSource")
+                .Do(_ => Console.WriteLine(_))
+                .TakeUntil(cts.Token)
+                .LogToFile("test.txt", x => x.DumpPayloadOrMessage(), Encoding.UTF8, false);
 
             // var providingIndex = 0;
             var providingMessages = new[]
@@ -225,6 +239,7 @@ namespace SampleEventSource
 
                 // Thread.Sleep(TimeSpan.FromSeconds(1));
                 //var msg = providingMessages[providingIndex++];
+                if (msg == null) return;
 
                 var split = msg.Split(':');
                 var id = int.Parse(split[0]);
@@ -254,6 +269,7 @@ namespace SampleEventSource
                         SampleEventSource.Log.Verbose(message ?? "Verbose");
                         break;
                     default:
+                        cts.Cancel();
                         break;
                 }
             }

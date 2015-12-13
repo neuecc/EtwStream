@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleEventSource", "Sample
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.Service", "EtwStream.Service\EtwStream.Service.csproj", "{0D5B543D-5156-43BC-AEDB-97D3404A8DAE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggerPerformance", "LoggerPerformance\LoggerPerformance.csproj", "{BC354408-3172-410B-9B74-EF377818906E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{0D5B543D-5156-43BC-AEDB-97D3404A8DAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D5B543D-5156-43BC-AEDB-97D3404A8DAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D5B543D-5156-43BC-AEDB-97D3404A8DAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC354408-3172-410B-9B74-EF377818906E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC354408-3172-410B-9B74-EF377818906E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC354408-3172-410B-9B74-EF377818906E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC354408-3172-410B-9B74-EF377818906E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
