@@ -2,6 +2,11 @@ EtwStream
 ---
 [ETW(Event Tracing for Windows)](https://msdn.microsoft.com/en-us/library/windows/desktop/bb968803.aspx) and [EventSource](https://msdn.microsoft.com/en-us/library/system.diagnostics.tracing.eventsource.aspx) is important feature for structured logging in .NET. But monitoring log stream is very hard. EtwStream provides LINQPad integartion, you can dump ETW stream simply like log viewer.
 
+EtwStream is full featured logger, In-Process Rx Logger and Out-of-Process next generation logging service with C# Scripting config. You can replace log4net/NLog/Serilog/SLAB etc. Please see [EtwStream.Core](#etwstreamcore) and [EtwStream.Service](#etwstreamservice) section. 
+
+LINQPad Viewer
+---
+
 ```
 PM> Install-Package EtwStream.LinqPad
 ```
@@ -20,15 +25,15 @@ ObservableEventListener
 ---
 ObservableEventListener provides five ways for observe log events.
 
-| Method               | Description
-| -------------------- | ---------------------------------------------------------
-| FromEventSource      | Observe In-Process EventSource events. It's no across ETW.
-| FromTraceEvent       | Observe Out-of-Process ETW Realtime session.
-| FromClrTraceEvent    | Observe Out-of-Process ETW CLR TraceEvent.
-| FromKernelTraceEvent | Observe Out-of-Process ETW Kernel TraceEvent.
-| FromFileTail         | Observe String-Line from file like tail -f.
+| Method                   | Description
+| ------------------------ | ---------------------------------------------------------
+| FromEventSource          | Observe In-Process EventSource events. It's no across ETW.
+| FromTraceEvent           | Observe Out-of-Process ETW Realtime session.
+| FromClrTraceEvent        | Observe Out-of-Process ETW CLR TraceEvent.
+| FromKernelTraceEvent     | Observe Out-of-Process ETW Kernel TraceEvent.
+| FromFileTail             | Observe String-Line from file like tail -f.
 
-You usually use FromTraceEvent, it can observer own defined EventSource and built-in EventSource such as TplEventSource. `withProcessName: true`, dump with process name.
+You usually use FromTraceEvent, it can observe own defined EventSource and built-in EventSource such as TplEventSource. `withProcessName: true`, dump with process name.
 
 ![etwstreamtpl](https://cloud.githubusercontent.com/assets/46207/10906637/891344b8-8266-11e5-9bc5-0159bd60f048.gif)
 
@@ -58,13 +63,83 @@ Observable.Merge(
 
 EtwStream.Core
 ---
-EtwStream's Core Engine can use all .NET apps.
+EtwStream's Core Engine can use all .NET apps, it's In-Process logger.
 
 ```
 PM> Install-Package EtwStream
 ```
 
-ObservableEventListener is simple wrapper of `EventListener` and `TraceEvent(Microsoft.Diagnostics.Tracing.TraceEvent)`. You can control there easily. 
+ObservableEventListener is simple wrapper of `EventListener` and `TraceEvent(Microsoft.Diagnostics.Tracing.TraceEvent)`. You can control there easily.
+
+`LogToXxx` methods are sink(output plugin). Here is the currently available lists. 
+
+| Sink Method      | Description
+| ---------------- | ---------------------------------------------------------
+| LogToConsole     | Output by Console.WriteLine with colored.
+| LogToDebug       | Output by Debug.WriteLine.
+| LogToTrace       | Output by Trace.WriteLine.
+| LogToFile        | Output to flat file by asynchronous I/O's high performance sink.
+| LogToRollingFile | Output to flat file with file rotate rule.
+| LogTo            | LogTo is helper for multiple subscribe.
+
+> How to make original Sink? I recommend log to Azure EventHubs, AWS Kinesis, BigQuery Streaming insert directly. Log to file is legacy way! Document is not available yet. Please see [Sinks](https://github.com/neuecc/EtwStream/tree/master/EtwStream.Core/Sinks) codes and please here to me. 
+
+You can control asynchronous/buffered events(should control there manualy).
+
+```csharp
+static void Main()
+{
+    // in ApplicationStart, prepare two parts.
+    var cts = new CancellationTokenSource();
+    var container = new SubscriptionContainer();
+    
+    // configure log
+    ObservableEventListener.FromTraceEvent("SampleEventSource")
+        .Buffer(TimeSpan.FromSeconds(5), 1000, cts.Token)
+        .LogToFile("log.txt", x => $"[{DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss")}][{x.Level}]{x.DumpPayload()}", Encoding.UTF8, autoFlush: false)
+        .AddTo(container);
+        
+    // Application Running...
+        
+    // End of Application(Form_Closed/Application_End/Main's last line/etc...)
+    cts.Cancel();        // Cancel publish rest of buffered events.
+    container.Dispose(); // Wait finish of subscriptions's buffer event.
+}
+```
+
+`Buffer(TimeSpan, int, CancellationToken)` and `TakeUntil(CancellationToken)` is special helper methods of EtwStream. Please use before Subscribe(LogTo) operator. After Subscribe(LogTo), you can use `AddTo` helper method to `SubscriptionContainer`. It enables wait subscription complete with `CancellationToken`.
+
+EtwStream.Service
+---
+EtwStream.Service is Out-Of-Process worker of EtwStream. It's built on [Topshelf](https://github.com/Topshelf/Topshelf). You can execute direct(for Console Application Viewer) or install Windows Service(EtwStreamService.exe -install). 
+
+You can download exe from releases page. > [EtwStraem/releases](https://github.com/neuecc/EtwStream/releases)
+
+The concept is same as [Semantic Logging Application Block's Out-of-Process Service](https://msdn.microsoft.com/en-us/library/dn440729.aspx). Different is configure by Roslyn C# Scripting and supports Self-describing events of .NET 4.6 EventSource.  
+
+Configuration is csx. You can write full Rx and C# codes. for example
+
+```
+// configuration.csx
+
+// Buffering 5 seconds or 1000 count
+// Output format is Func<TraceEvent, string>
+ObservableEventListener.FromTraceEvent("SampleEventSource")
+    .Buffer(TimeSpan.FromSeconds(5), 1000, EtwStreamService.TerminateToken)
+    .LogToFile("log.txt", x => $"[{DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss")}][{x.Level}]{x.DumpPayload()}", Encoding.UTF8, autoFlush: false)
+    .AddTo(EtwStreamService.Container);
+```
+
+Everything is C#, you can compose, routing by Rx. It is no different with In-Process and Out-of-Process. Off course you can use `System.Configuration.ConfigurationManager.AppSettings`, `WebClient`, from file, etc everything.
+
+LINQPad helps write csx
+---
+Current csx editor is very poor. LINQPad can save your blues. 
+
+![image](https://cloud.githubusercontent.com/assets/46207/11766813/037c7376-a1db-11e5-9f74-8b4aeec20c5b.png)
+
+
+`EtwStream.LINQPad` has EtwStream.Service's shim. You can compile and run by LINQPad, and paste to csx, it's works.
 
 LoggerEventSource
 ---
@@ -199,13 +274,6 @@ public class LoggerEventSource : EventSource
 ```
 
 This is basic definition. Next step, you should define own method for structured-logging.
-
-How to save log to file? Where is Out-of-Process Service?
----
-EtwStream currently no provides FileSink, Out-of-Process Service. Please use [Semantic Logging Application Block](https://msdn.microsoft.com/en-us/library/dn440729.aspx) or [Serilog](http://serilog.net/).
-
-But I will create new style of Out-of-Process Service configuration with Roslyn C# Scripting API and sinks.  - https://github.com/neuecc/EtwStream/issues/2
-Please wait a moment.
 
 Wellknown EventSources
 ---

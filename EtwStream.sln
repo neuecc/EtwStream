@@ -7,8 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B09A3A79
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.Core", "EtwStream.Core\EtwStream.Core.csproj", "{160A1602-5FA5-4E54-A2B0-21BD33FE06F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.ConsoleViewer", "EtwStream.ConsoleViewer\EtwStream.ConsoleViewer.csproj", "{BFBFF842-93E1-4EF8-B269-D0EF07FF9076}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{492B475A-D99D-4C78-B707-45DFCB290BF4}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\EtwStream.LinqPad.nuspec = .nuget\EtwStream.LinqPad.nuspec
@@ -38,10 +36,6 @@ Global
 		{160A1602-5FA5-4E54-A2B0-21BD33FE06F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{160A1602-5FA5-4E54-A2B0-21BD33FE06F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{160A1602-5FA5-4E54-A2B0-21BD33FE06F3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BFBFF842-93E1-4EF8-B269-D0EF07FF9076}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BFBFF842-93E1-4EF8-B269-D0EF07FF9076}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BFBFF842-93E1-4EF8-B269-D0EF07FF9076}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BFBFF842-93E1-4EF8-B269-D0EF07FF9076}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7482323F-72A0-4F8D-A3B5-D15822D32627}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7482323F-72A0-4F8D-A3B5-D15822D32627}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7482323F-72A0-4F8D-A3B5-D15822D32627}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -19,19 +20,30 @@ namespace EtwStream
         /// Observe Out-of-Process ETW Realtime session by provider Name or string Guid.
         /// </summary>
         /// <param name="providerNameOrGuid">e.g.'MyEventSource'</param>
-        public static IObservable<TraceEvent> FromTraceEvent(string providerNameOrGuid)
+        public static IObservable<TraceEvent> FromTraceEvent(params string[] providerNameOrGuid)
         {
-            Guid guid;
-            return Guid.TryParse(providerNameOrGuid, out guid)
-                ? FromTraceEvent(guid)
-                : FromTraceEvent(TraceEventProviders.GetEventSourceGuidFromName(providerNameOrGuid));
+            var guids = new List<Guid>();
+            foreach (var item in providerNameOrGuid)
+            {
+                Guid guid;
+                if (Guid.TryParse(item, out guid))
+                {
+                    guids.Add(guid);
+                }
+                else
+                {
+                    guids.Add(TraceEventProviders.GetEventSourceGuidFromName(item));
+                }
+            }
+
+            return FromTraceEvent(guids.ToArray());
         }
 
         /// <summary>
         /// Observe Out-of-Process ETW Realtime session by provider Guid.
         /// </summary>
         /// <param name="providerGuid">e.g.'2e5dba47-a3d2-4d16-8ee0-6671ffdcd7b5'</param>
-        public static IObservable<TraceEvent> FromTraceEvent(Guid providerGuid)
+        public static IObservable<TraceEvent> FromTraceEvent(params Guid[] providerGuid)
         {
             IConnectableObservable<TraceEvent> source;
             var session = new TraceEventSession("ObservableEventListenerFromTraceEventSession." + Guid.NewGuid().ToString());
@@ -40,10 +52,13 @@ namespace EtwStream
             try
             {
                 source = session.Source.Dynamic.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
-                    .Where(x => x.ProviderGuid == providerGuid && x.EventName != ManifestEventName && x.ID != ManifestEventID)
+                    .Where(x => x.EventName != ManifestEventName && x.ID != ManifestEventID)
                     .Finally(() => session.Dispose())
                     .Publish();
-                session.EnableProvider(providerGuid);
+                foreach (var item in providerGuid)
+                {
+                    session.EnableProvider(item);
+                }
             }
             catch
             {
@@ -78,49 +93,6 @@ namespace EtwStream
                 var guid = (Guid)typeof(TParser).GetField("ProviderGuid", BindingFlags.Public | BindingFlags.Static).GetValue(null);
                 source = parser.Observe<TData>().Finally(() => session.Dispose()).Publish();
                 session.EnableProvider(guid);
-            }
-            catch
-            {
-                session.Dispose();
-                throw;
-            }
-
-            Task.Factory.StartNew(() =>
-            {
-                using (session)
-                {
-                    session.Source.Process();
-                }
-            }, TaskCreationOptions.LongRunning);
-
-            return source.RefCount();
-        }
-
-        /// <summary>
-        /// Observe Out-of-Process ETW Registered TraceEvent by provider Guid.
-        /// </summary>
-        /// <param name="providerGuid">e.g.'36da592d-e43a-4e28-af6f-4bc57c5a11e8'</param>
-        public static IObservable<TraceEvent> FromRegisteredTraceEvent(string providerGuid)
-        {
-            return FromRegisteredTraceEvent(Guid.Parse(providerGuid));
-        }
-
-        /// <summary>
-        /// Observe Out-of-Process ETW Registered TraceEvent by provider Guid.
-        /// </summary>
-        public static IObservable<TraceEvent> FromRegisteredTraceEvent(Guid providerGuid)
-        {
-            IConnectableObservable<TraceEvent> source;
-            var session = new TraceEventSession("ObservableEventListenerFromRegisteredTraceEventSession." + Guid.NewGuid().ToString());
-            var sessionName = session.SessionName;
-
-            try
-            {
-                source = session.Source.Registered.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
-                    .Where(x => x.ProviderGuid == providerGuid && x.EventName != ManifestEventName && x.ID != ManifestEventID)
-                    .Finally(() => session.Dispose())
-                    .Publish();
-                session.EnableProvider(providerGuid);
             }
             catch
             {
@@ -248,7 +220,7 @@ namespace EtwStream
                 item.Dispose();
                 activeCount++;
             }
-            Console.WriteLine("ActiveSession's Count:" + activeCount);
+            Console.WriteLine("Cleared ActiveSession's Count:" + activeCount);
         }
     }
 }

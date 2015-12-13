@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>EtwStream.LinqPad</id>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
         <title>EtwStream.LinqPad</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -10,7 +10,8 @@
         <description>Monitoring ETW is very hard. Now LINQPad is log viewer, you can dump ETW stream.</description>
         <releaseNotes>
             <![CDATA[
-Initial Release.
+Supports RegisteredEvents with FromTraceEvent.
+Supports EtwStream.Service helper.
             ]]>
         </releaseNotes>
         <language>en-US</language>
@@ -18,7 +19,7 @@ Initial Release.
         <projectUrl>https://github.com/neuecc/EtwStream</projectUrl>
         <tags>ETW TraceEvent EventSource LINQPad</tags>
         <dependencies>
-            <dependency id="EtwStream" version="1.0.0" />
+            <dependency id="EtwStream" version="1.1.0" />
         </dependencies>
     </metadata>
     <files>

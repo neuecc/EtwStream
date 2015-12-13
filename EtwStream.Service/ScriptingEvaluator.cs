@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reactive.Disposables;
 using System.Threading;
@@ -16,23 +15,33 @@ namespace EtwStream.Service
 
     public class ScriptingEvaluator
     {
+        public EtwStreamService EtwStreamService { get; private set; }
+        public CancellationTokenSource CancellationTokenSource { get; private set; }
+
+        public ScriptingEvaluator()
+        {
+            this.CancellationTokenSource = new CancellationTokenSource();
+            this.EtwStreamService = new EtwStreamService(this.CancellationTokenSource.Token);
+        }
+
         string LoadScript(string fileName)
         {
             var code = File.ReadAllText("configuration.csx");
-            code = code.TrimEnd(' ', ';', '\r', '\n'); // needs the trim, last line must be expression
+            code = code.TrimEnd(' ', ';', '\r', '\n');
             return code;
         }
 
-        public async Task<TaskContainer> EvaluateAsync(CancellationToken terminateToken)
+        public async Task EvaluateAsync()
         {
-            // TODO:read code
             var code = LoadScript("configuration.csx");
-
+            
             var options = ScriptOptions.Default
                 .AddReferences(new[]
                 {
+                    this.GetType().Assembly,
                     typeof(System.Exception).Assembly,
                     typeof(System.Linq.Enumerable).Assembly,
+                    typeof(System.Configuration.ConfigurationManager).Assembly,
                     typeof(System.Reactive.Notification).Assembly,
                     typeof(System.Reactive.Concurrency.IScheduler).Assembly,
                     typeof(System.Reactive.Linq.Observable).Assembly,
@@ -41,70 +50,37 @@ namespace EtwStream.Service
                 })
                 .WithImports(
                     "System",
+                    "System.IO",
+                    "System.Diagnostics",
+                    "System.Dynamic",
                     "System.Linq",
+                    "System.Linq.Expressions",
+                    "System.Text",
                     "System.Collections.Generic",
                     "System.Threading.Tasks",
                     "System.Reactive.Linq",
                     "System.Reactive.Disposables",
+                    "System.Configuration",
                     "EtwStream");
 
             var globalParameter = new Globals()
             {
-                // TODO:AppConfig
-                EtwStreamService = new EtwStreamService(terminateToken, new Dictionary<string, string>())
+                EtwStreamService = this.EtwStreamService
             };
 
-            await CSharpScript.EvaluateAsync(code, options, globalParameter, typeof(Globals), terminateToken).ConfigureAwait(false);
-
-            return globalParameter.EtwStreamService.TaskContainer;
+            await CSharpScript.EvaluateAsync(code, options, globalParameter, typeof(Globals), this.EtwStreamService.TerminateToken).ConfigureAwait(false);
         }
     }
 
     public class EtwStreamService
     {
         public CancellationToken TerminateToken { get; }
-        public TaskContainer TaskContainer { get; }
-        public IReadOnlyDictionary<string, string> AppConfig { get; }
+        public ISubscriptionContainer Container { get; }
 
-        public EtwStreamService(CancellationToken terminateToken, IReadOnlyDictionary<string, string> appConfig)
+        public EtwStreamService(CancellationToken terminateToken)
         {
             this.TerminateToken = terminateToken;
-            this.AppConfig = appConfig;
-            this.TaskContainer = new TaskContainer();
-        }
-    }
-
-    public class TaskContainer
-    {
-        List<Task> list = new List<Task>();
-
-        public void Add(Task task)
-        {
-            lock (list)
-            {
-                list.Add(task);
-            }
-        }
-
-        internal void WaitComplete(int millisecondsTimeout)
-        {
-            Task[] array;
-            lock (list)
-            {
-                array = list.ToArray();
-            }
-            Task.WaitAll(array, millisecondsTimeout);
-        }
-    }
-}
-
-namespace EtwStream
-{
-    public static class TaskEtwStreamServiceExtensions
-    {
-        public static void AddTo(this Task task, EtwStream.Service.TaskContainer container)
-        {
-            container.Add(task);
+            this.Container = new SubscriptionContainer();
         }
     }
 }

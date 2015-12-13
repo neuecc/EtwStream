@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>EtwStream</id>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
         <title>EtwStream</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -10,7 +10,8 @@
         <description>Logs are event streams. EtwStream provides In-Process and Out-of-Process ObservableEventListener. Everything can compose and output to anywhere by Reactive Extensions.</description>
         <releaseNotes>
             <![CDATA[
-Initial Release.
+Supports RegisteredEvents with FromTraceEvent.
+Supports EtwStream.Service helper.
             ]]>
         </releaseNotes>
         <language>en-US</language>
@@ -18,7 +19,7 @@ Initial Release.
         <projectUrl>https://github.com/neuecc/EtwStream</projectUrl>
         <tags>ETW TraceEvent EventSource</tags>
         <dependencies>
-            <dependency id="Microsoft.Diagnostics.Tracing.TraceEvent" version="1.0.39" />
+            <dependency id="Microsoft.Diagnostics.Tracing.TraceEvent" version="1.0.40" />
             <dependency id="Rx-Main" version="2.2.5" />
         </dependencies>
     </metadata>

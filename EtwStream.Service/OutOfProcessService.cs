@@ -10,41 +10,50 @@ namespace EtwStream.Service
 {
     public class OutOfProcessService
     {
-        int timeoutMilliseconds = 3000;
-        CancellationTokenSource source;
-        TaskContainer taskContainer;
-
-        public OutOfProcessService()
-        {
-            this.source = new CancellationTokenSource();
-        }
+        readonly object evaluatorLock = new object();
+        ScriptingEvaluator evaluator = null;
 
         public void Start()
         {
             try
             {
-                var evaluator = new ScriptingEvaluator();
-                var t = Interlocked.Exchange(ref taskContainer, null);
-                if (t != null)
+                lock (evaluatorLock)
                 {
-                    t.WaitComplete(timeoutMilliseconds);
+                    if (evaluator != null)
+                    {
+                        evaluator.CancellationTokenSource.Cancel();     // publish OnCompleted
+                        (evaluator.EtwStreamService.Container as SubscriptionContainer)?.Dispose(); // wait all subscriptions
+                    }
+
+                    evaluator = new ScriptingEvaluator();
                 }
-                taskContainer = evaluator.EvaluateAsync(source.Token).Result;
+
+                evaluator.EvaluateAsync().Wait();
             }
             catch (Exception ex)
             {
-                // TODO:what to do?
-                Console.WriteLine(ex);
+                EtwStreamEventSource.Log.ServiceError("csx evaluator error.", ex.ToString());
+                throw;
             }
         }
 
         public void Stop()
         {
-            source.Cancel(); // send terminate event
-            var t = Interlocked.Exchange(ref taskContainer, null);
-            if (t != null)
+            try
             {
-                t.WaitComplete(timeoutMilliseconds);
+                Console.WriteLine("go stop");
+                lock (evaluatorLock)
+                {
+                    evaluator.CancellationTokenSource.Cancel();
+                    (evaluator.EtwStreamService.Container as SubscriptionContainer)?.Dispose(); // wait all subscriptions
+                    evaluator = null;
+                }
+                Console.WriteLine("out stop");
+            }
+            catch (Exception ex)
+            {
+                EtwStreamEventSource.Log.ServiceError("evaluator terminate error.", ex.ToString());
+                throw;
             }
         }
     }

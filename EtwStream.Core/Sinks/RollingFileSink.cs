@@ -96,7 +96,7 @@ namespace EtwStream
                 this.rollSizeInBytes = rollSizeKB * 1024;
                 this.encoding = encoding;
                 this.autoFlush = autoFlush;
-
+                
                 ValidateFileNameSelector();
             }
 

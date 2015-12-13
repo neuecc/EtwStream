@@ -191,24 +191,8 @@ namespace SampleEventSource
     {
         static void Main(string[] args)
         {
-            ObservableEventListener.ClearAllActiveObservableEventListenerSession();
-
-            ObservableEventListener.FromEventSource(EtwStreamEventSource.Log).LogToConsole();
-
-            var cts = new CancellationTokenSource();
-            Console.CancelKeyPress += (sender, e) =>
-            {
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-                Console.WriteLine("GO");
-                cts.Cancel();
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-                Console.WriteLine("WAITING");
-            };
-
-            ObservableEventListener.FromTraceEvent("SampleEventSource")
-                .Do(_ => Console.WriteLine(_))
-                .TakeUntil(cts.Token)
-                .LogToFile("test.txt", x => x.DumpPayloadOrMessage(), Encoding.UTF8, false);
+            var source = ObservableEventListener.FromTraceEvent("SampleEventSource", "LoggerEventSource").Publish().RefCount();
+            source.Subscribe(x => Console.WriteLine(x.DumpPayloadOrMessage()));
 
             // var providingIndex = 0;
             var providingMessages = new[]
@@ -269,7 +253,6 @@ namespace SampleEventSource
                         SampleEventSource.Log.Verbose(message ?? "Verbose");
                         break;
                     default:
-                        cts.Cancel();
                         break;
                 }
             }

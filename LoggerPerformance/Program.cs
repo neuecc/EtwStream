@@ -18,10 +18,11 @@ namespace LoggerPerformance
     {
         static void Main(string[] args)
         {
+            NLoog.Run();
             // Slab.Run();
             //EtwStream.Run();
             // Serilooog.Run();
-            EtwStream.Test();
+            //EtwStream.Test();
         }
 
         static class EtwStream
