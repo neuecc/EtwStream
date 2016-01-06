@@ -191,6 +191,16 @@ namespace SampleEventSource
     {
         static void Main(string[] args)
         {
+            // Test USB
+            ObservableEventListener.FromTraceEvent("c88a4ef5-d048-4013-9408-e04b7db2814a")
+            .Select(x => new { x.TimeStamp, x.EventName, Payload = x.DumpPayload() })
+            .Subscribe(x => Console.WriteLine(x), ex => Console.WriteLine(ex));
+
+            Console.ReadLine();
+            return;
+
+
+
             var source = ObservableEventListener.FromTraceEvent("SampleEventSource", "LoggerEventSource").Publish().RefCount();
             source.Subscribe(x => Console.WriteLine(x.DumpPayloadOrMessage()));
 

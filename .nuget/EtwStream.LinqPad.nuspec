@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>EtwStream.LinqPad</id>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <title>EtwStream.LinqPad</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -10,8 +10,8 @@
         <description>Monitoring ETW is very hard. Now LINQPad is log viewer, you can dump ETW stream.</description>
         <releaseNotes>
             <![CDATA[
-Supports RegisteredEvents with FromTraceEvent.
-Supports EtwStream.Service helper.
+TraceEvent.DumpPayload doesn not throw ArgumentOutOfRangeException when PayloadValue is shorter than PayloadNames
+Add DumpWithColor(messageSelector)
             ]]>
         </releaseNotes>
         <language>en-US</language>
@@ -19,7 +19,7 @@ Supports EtwStream.Service helper.
         <projectUrl>https://github.com/neuecc/EtwStream</projectUrl>
         <tags>ETW TraceEvent EventSource LINQPad</tags>
         <dependencies>
-            <dependency id="EtwStream" version="1.1.0" />
+            <dependency id="EtwStream" version="1.2.0" />
         </dependencies>
     </metadata>
     <files>

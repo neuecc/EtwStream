@@ -42,7 +42,7 @@ namespace EtwStream
             {
                 if (i != 0) sb.Append(", ");
                 var name = names[i];
-                var value = traceEvent.PayloadValue(i);
+                var value = traceEvent.PayloadString(i);
                 sb.Append(name).Append(": ").Append(value);
             }
             sb.Append("}");
@@ -68,7 +68,7 @@ namespace EtwStream
                 for (int i = 0; i < count; i++)
                 {
                     var name = names[i];
-                    var value = traceEvent.PayloadValue(i);
+                    var value = traceEvent.PayloadString(i);
 
                     jw.WritePropertyName(name);
                     jw.WriteValue(value);

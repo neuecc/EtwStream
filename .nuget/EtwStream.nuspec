@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>EtwStream</id>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <title>EtwStream</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -10,8 +10,7 @@
         <description>Logs are event streams. EtwStream provides In-Process and Out-of-Process ObservableEventListener. Everything can compose and output to anywhere by Reactive Extensions.</description>
         <releaseNotes>
             <![CDATA[
-Supports RegisteredEvents with FromTraceEvent.
-Supports EtwStream.Service helper.
+TraceEvent.DumpPayload doesn not throw ArgumentOutOfRangeException when PayloadValue is shorter than PayloadNames
             ]]>
         </releaseNotes>
         <language>en-US</language>

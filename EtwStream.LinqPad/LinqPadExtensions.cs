@@ -40,13 +40,15 @@ namespace EtwStream
             return Util.WithStyle(o, "color:" + color.ToString());
         }
 
-        public static IObservable<object> WithColor(this IObservable<TraceEvent> source, bool withProviderName = false, bool withProcessName = false)
+        public static IObservable<object> WithColor(this IObservable<TraceEvent> source, bool withProviderName = false, bool withProcessName = false, Func<TraceEvent, string> messageSelector = null)
         {
             Util.AutoScrollResults = true; // force autoscroll on
 
             var newSource = source.Select(x =>
             {
-                var message = x.DumpPayloadOrMessage();
+                var message = (messageSelector == null)
+                    ? x.DumpPayloadOrMessage()
+                    : messageSelector(x);
 
                 if (withProcessName && withProviderName)
                 {
@@ -109,9 +111,9 @@ namespace EtwStream
             return connectable.AsObservable();
         }
 
-        public static IObservable<object> DumpWithColor(this IObservable<TraceEvent> source, bool withProviderName = false, bool withProcessName = false)
+        public static IObservable<object> DumpWithColor(this IObservable<TraceEvent> source, bool withProviderName = false, bool withProcessName = false, Func<TraceEvent, string> messageSelector = null)
         {
-            return LINQPad.Extensions.Dump(WithColor(source, withProviderName, withProcessName));
+            return LINQPad.Extensions.Dump(WithColor(source, withProviderName, withProcessName, messageSelector));
         }
 
         // EventWrittenEventArgs
@@ -124,14 +126,16 @@ namespace EtwStream
             return Util.WithStyle(o, "color:" + color.ToString());
         }
 
-        public static IObservable<object> WithColor(this IObservable<EventWrittenEventArgs> source, bool withProviderName = false)
+        public static IObservable<object> WithColor(this IObservable<EventWrittenEventArgs> source, bool withProviderName = false, Func<EventWrittenEventArgs, string> messageSelector = null)
         {
             Util.AutoScrollResults = true; // force autoscroll on
 
             var newSource = source.Select(x =>
             {
                 var timestamp = DateTime.Now;
-                var message = x.DumpPayloadOrMessage();
+                var message = (messageSelector == null)
+                    ? x.DumpPayloadOrMessage()
+                    : messageSelector(x);
 
                 if (withProviderName)
                 {
@@ -165,9 +169,9 @@ namespace EtwStream
             return connectable.AsObservable();
         }
 
-        public static IObservable<object> DumpWithColor(this IObservable<EventWrittenEventArgs> source, bool withProviderName = false)
+        public static IObservable<object> DumpWithColor(this IObservable<EventWrittenEventArgs> source, bool withProviderName = false, Func<EventWrittenEventArgs, string> messageSelector = null)
         {
-            return LINQPad.Extensions.Dump(WithColor(source, withProviderName));
+            return LINQPad.Extensions.Dump(WithColor(source, withProviderName, messageSelector));
         }
     }
 }
