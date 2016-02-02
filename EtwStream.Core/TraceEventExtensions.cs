@@ -19,9 +19,9 @@ namespace EtwStream
                 case TraceEventLevel.Error:
                     return ConsoleColor.Red;
                 case TraceEventLevel.Informational:
-                    return ConsoleColor.Gray;
-                case TraceEventLevel.Verbose:
                     return ConsoleColor.Green;
+                case TraceEventLevel.Verbose:
+                    return ConsoleColor.Gray;
                 case TraceEventLevel.Warning:
                     return isBackgroundWhite ? ConsoleColor.DarkRed : ConsoleColor.Yellow;
                 case TraceEventLevel.Always:

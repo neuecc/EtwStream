@@ -54,9 +54,9 @@ namespace EtwStream
                 case EventLevel.Error:
                     return ConsoleColor.Red;
                 case EventLevel.Informational:
-                    return ConsoleColor.Gray;
-                case EventLevel.Verbose:
                     return ConsoleColor.Green;
+                case EventLevel.Verbose:
+                    return ConsoleColor.Gray;
                 case EventLevel.Warning:
                     return isBackgroundWhite ? ConsoleColor.DarkRed : ConsoleColor.Yellow;
                 case EventLevel.LogAlways:
