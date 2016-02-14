@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>EtwStream.LinqPad</id>
-        <version>1.2.1</version>
+        <version>1.2.2</version>
         <title>EtwStream.LinqPad</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -10,7 +10,7 @@
         <description>Monitoring ETW is very hard. Now LINQPad is log viewer, you can dump ETW stream.</description>
         <releaseNotes>
             <![CDATA[
-Change color : Verbose -> Gray, Informational -> Green
+Add EventWrittenEventArgs.GetPayloadNames, GetKeywordDescription and GetTaskName, thanks @tanaka-takayoshi
             ]]>
         </releaseNotes>
         <language>en-US</language>
@@ -18,7 +18,7 @@ Change color : Verbose -> Gray, Informational -> Green
         <projectUrl>https://github.com/neuecc/EtwStream</projectUrl>
         <tags>ETW TraceEvent EventSource LINQPad</tags>
         <dependencies>
-            <dependency id="EtwStream" version="1.2.1" />
+            <dependency id="EtwStream" version="1.2.2" />
         </dependencies>
     </metadata>
     <files>

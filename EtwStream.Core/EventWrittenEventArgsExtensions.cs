@@ -49,6 +49,9 @@ namespace EtwStream
             });
         }
 
+        /// <summary>
+        /// Get PeyloadNames from EventSource manifest.
+        /// </summary>
         public static ReadOnlyCollection<string> GetPayloadNames(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
             var source = eventArgs.EventSource;
@@ -56,6 +59,9 @@ namespace EtwStream
             return templates[eventArgs.EventId].Payload;
         }
 
+        /// <summary>
+        /// Get KeywordDescription from EventSource manifest.
+        /// </summary>
         public static string GetKeywordDescription(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
             var source = eventArgs.EventSource;
@@ -63,6 +69,9 @@ namespace EtwStream
             return templates[eventArgs.EventId].KeywordDesciption;
         }
 
+        /// <summary>
+        /// Get TaskName from EventSource manifest.
+        /// </summary>
         public static string GetTaskName(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
             var source = eventArgs.EventSource;
