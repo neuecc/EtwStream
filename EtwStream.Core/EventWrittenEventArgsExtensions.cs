@@ -12,6 +12,64 @@ namespace EtwStream
 {
     public static class EventWrittenEventArgsExtensions
     {
+        // { EventSource : { EventId, EventSchemaPortion } }
+        readonly static ConcurrentDictionary<System.Diagnostics.Tracing.EventSource, ReadOnlyDictionary<int, EventSchemaPortion>> cache = new ConcurrentDictionary<System.Diagnostics.Tracing.EventSource, ReadOnlyDictionary<int, EventSchemaPortion>>();
+
+        static ReadOnlyDictionary<int, EventSchemaPortion> GetEventSchemaPortions(System.Diagnostics.Tracing.EventSource source)
+        {
+            return cache.GetOrAdd(source, s => // no needs lock
+            {
+                var manifest = System.Diagnostics.Tracing.EventSource.GenerateManifest(s.GetType(), null);
+
+                var xElem = XElement.Parse(manifest);
+                var ns = xElem.Name.Namespace;
+
+                // { tid : { eventId, keywords, taskName} }
+                var tidRef = xElem.Descendants(ns + "event")
+                    .ToDictionary(x => x.Attribute("template").Value, x => new
+                    {
+                        EventId = int.Parse(x.Attribute("value").Value),
+                        Keywords = x.Attribute("keywords")?.Value ?? "",
+                        Task = x.Attribute("task").Value
+                    });
+
+
+                var dict = xElem.Descendants(ns + "template")
+                     .Select(template => new { template, @event = tidRef[template.Attribute("tid").Value] })
+                     .ToDictionary(
+                        x => x.@event.EventId,
+                        x => new EventSchemaPortion(
+                                new ReadOnlyCollection<string>(x.template.Elements(ns + "data")
+                                .Select(y => y.Attribute("name").Value)
+                                .ToArray()),
+                                x.@event.Keywords,
+                                x.@event.Task));
+
+                return new ReadOnlyDictionary<int, EventSchemaPortion>(dict);
+            });
+        }
+
+        public static ReadOnlyCollection<string> GetPayloadNames(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
+        {
+            var source = eventArgs.EventSource;
+            var templates = GetEventSchemaPortions(source);
+            return templates[eventArgs.EventId].Payload;
+        }
+
+        public static string GetKeywordDescription(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
+        {
+            var source = eventArgs.EventSource;
+            var templates = GetEventSchemaPortions(source);
+            return templates[eventArgs.EventId].KeywordDesciption;
+        }
+
+        public static string GetTaskName(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
+        {
+            var source = eventArgs.EventSource;
+            var templates = GetEventSchemaPortions(source);
+            return templates[eventArgs.EventId].TaskName;
+        }
+
         public static string DumpFormattedMessage(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
             var msg = eventArgs.Message;
@@ -22,7 +80,7 @@ namespace EtwStream
 
         public static string DumpPayload(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
-            var names = eventArgs.PayloadNames;
+            var names = eventArgs.GetPayloadNames();
 
             var sb = new StringBuilder();
             sb.Append("{");
@@ -87,6 +145,22 @@ namespace EtwStream
                 sw.Flush();
                 return sw.ToString();
             }
+        }
+    }
+
+    /// <summary>
+    /// A portion of EventSchema to be required.
+    /// </summary>
+    class EventSchemaPortion
+    {
+        internal ReadOnlyCollection<string> Payload { get; }
+        internal string KeywordDesciption { get; }
+        internal string TaskName { get; }
+        internal EventSchemaPortion(ReadOnlyCollection<string> payload, string keywordDescription, string taskName)
+        {
+            Payload = payload;
+            KeywordDesciption = keywordDescription;
+            TaskName = taskName;
         }
     }
 }
