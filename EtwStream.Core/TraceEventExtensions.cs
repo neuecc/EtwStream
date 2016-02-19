@@ -5,11 +5,50 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Diagnostics.Tracing;
+using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
+using System.Xml.Linq;
+using Microsoft.Diagnostics.Tracing.Parsers;
 
 namespace EtwStream
 {
     public static class TraceEventExtensions
     {
+        //{ providerGuid : { eventId: KeywordName }}
+        readonly static ConcurrentDictionary<Guid, ReadOnlyDictionary<int, string>> cache = new ConcurrentDictionary<Guid, ReadOnlyDictionary<int, string>>();
+
+        internal static void ReadSchema(TraceEvent manifestEvent)
+        {
+            var xElem = XElement.Parse(manifestEvent.ToXml(new StringBuilder()).ToString());
+            var ns = xElem.DescendantsAndSelf().First(x => x.Name.LocalName != "Event").Name.Namespace;
+            var guidText = xElem.Descendants(ns + "provider").First().Attribute("guid").Value;
+            var guid = new Guid(guidText.Replace("{", "").Replace("}", ""));
+            cache.GetOrAdd(guid, s =>
+            {
+                // { tid : { eventId, keywords} }
+                var tidRef = xElem.Descendants(ns + "event")
+                    .ToDictionary(x => x.Attribute("template").Value, x => new
+                    {
+                        EventId = int.Parse(x.Attribute("value").Value),
+                        Keywords = x.Attribute("keywords")?.Value ?? ""
+                    });
+
+
+                var dict = xElem.Descendants(ns + "template")
+                     .Select(template => new { template, @event = tidRef[template.Attribute("tid").Value] })
+                     .ToDictionary(
+                        x => x.@event.EventId,
+                        x => x.@event.Keywords);
+
+                return new ReadOnlyDictionary<int, string>(dict);
+            });
+        }
+        
+        public static string GetKeywordName(this TraceEvent traceEvent)
+        {
+            return cache[traceEvent.ProviderGuid][(int)traceEvent.ID];
+        }
+
         public static ConsoleColor? GetColorMap(this TraceEvent traceEvent, bool isBackgroundWhite)
         {
             switch (traceEvent.Level)

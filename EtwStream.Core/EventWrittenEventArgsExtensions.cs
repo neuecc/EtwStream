@@ -62,7 +62,7 @@ namespace EtwStream
         /// <summary>
         /// Get KeywordDescription from EventSource manifest.
         /// </summary>
-        public static string GetKeywordDescription(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
+        public static string GetKeywordName(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
             var source = eventArgs.EventSource;
             var templates = GetEventSchemaPortions(source);
