@@ -24,26 +24,18 @@ namespace EtwStream
                 var xElem = XElement.Parse(manifest);
                 var ns = xElem.Name.Namespace;
 
-                // { tid : { eventId, keywords, taskName} }
-                var tidRef = xElem.Descendants(ns + "event")
-                    .ToDictionary(x => x.Attribute("template").Value, x => new
-                    {
-                        EventId = int.Parse(x.Attribute("value").Value),
-                        Keywords = x.Attribute("keywords")?.Value ?? "",
-                        Task = x.Attribute("task").Value
-                    });
+                // { tid : {[payloadNames]}}
+                var tidRef = xElem.Descendants(ns + "template")
+                    .ToDictionary(x => x.Attribute("tid").Value, x => new ReadOnlyCollection<string>(
+                        x.Elements(ns + "data")
+                        .Select(y => y.Attribute("name").Value)
+                        .ToArray()));
 
-
-                var dict = xElem.Descendants(ns + "template")
-                     .Select(template => new { template, @event = tidRef[template.Attribute("tid").Value] })
-                     .ToDictionary(
-                        x => x.@event.EventId,
-                        x => new EventSchemaPortion(
-                                new ReadOnlyCollection<string>(x.template.Elements(ns + "data")
-                                .Select(y => y.Attribute("name").Value)
-                                .ToArray()),
-                                x.@event.Keywords,
-                                x.@event.Task));
+                var dict = xElem.Descendants(ns + "event")
+                    .ToDictionary(x => int.Parse(x.Attribute("value").Value), x => new EventSchemaPortion(
+                        x.Attribute("template")?.Value != null ? tidRef[x.Attribute("template").Value] : new string[0].ToList().AsReadOnly(),
+                        x.Attribute("keywords")?.Value ?? "",
+                        x.Attribute("task")?.Value ?? x.Attribute("symbol").Value));
 
                 return new ReadOnlyDictionary<int, EventSchemaPortion>(dict);
             });
@@ -62,7 +54,7 @@ namespace EtwStream
         /// <summary>
         /// Get KeywordDescription from EventSource manifest.
         /// </summary>
-        public static string GetKeywordDescription(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
+        public static string GetKeywordName(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)
         {
             var source = eventArgs.EventSource;
             var templates = GetEventSchemaPortions(source);
