@@ -52,6 +52,11 @@ namespace EtwStream
             try
             {
                 source = session.Source.Dynamic.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
+                    .Do(x =>
+                    {
+                        if (x.EventName == ManifestEventName)
+                            TraceEventExtensions.ReadSchema(x);
+                    })
                     .Where(x => x.EventName != ManifestEventName && x.ID != ManifestEventID)
                     .Finally(() => session.Dispose())
                     .Publish();
