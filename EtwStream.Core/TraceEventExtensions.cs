@@ -25,20 +25,16 @@ namespace EtwStream
             var guid = new Guid(guidText.Replace("{", "").Replace("}", ""));
             cache.GetOrAdd(guid, s =>
             {
-                // { tid : { eventId, keywords} }
-                var tidRef = xElem.Descendants(ns + "event")
-                    .ToDictionary(x => x.Attribute("template").Value, x => new
-                    {
-                        EventId = int.Parse(x.Attribute("value").Value),
-                        Keywords = x.Attribute("keywords")?.Value ?? ""
-                    });
+                // { tid : {[payloadNames]}}
+                var tidRef = xElem.Descendants(ns + "template")
+                    .ToDictionary(x => x.Attribute("tid").Value, x => new ReadOnlyCollection<string>(
+                        x.Elements(ns + "data")
+                        .Select(y => y.Attribute("name").Value)
+                        .ToArray()));
 
-
-                var dict = xElem.Descendants(ns + "template")
-                     .Select(template => new { template, @event = tidRef[template.Attribute("tid").Value] })
-                     .ToDictionary(
-                        x => x.@event.EventId,
-                        x => x.@event.Keywords);
+                var dict = xElem.Descendants(ns + "event")
+                    .ToDictionary(x => int.Parse(x.Attribute("value").Value),
+                        x => x.Attribute("keywords")?.Value ?? "");
 
                 return new ReadOnlyDictionary<int, string>(dict);
             });
