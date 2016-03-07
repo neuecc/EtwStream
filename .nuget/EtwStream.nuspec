@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>EtwStream</id>
-        <version>1.2.3</version>
+        <version>1.2.4</version>
         <title>EtwStream</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -10,7 +10,7 @@
         <description>Logs are event streams. EtwStream provides In-Process and Out-of-Process ObservableEventListener. Everything can compose and output to anywhere by Reactive Extensions.</description>
         <releaseNotes>
             <![CDATA[
-Support TraceEvent Keyword, thanks @tanaka-takayoshi
+Fixed manifest caching bug, thanks @tanaka-takayoshi, thanks @tanaka-takayoshi
             ]]>
         </releaseNotes>
         <language>en-US</language>
