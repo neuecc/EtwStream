@@ -102,7 +102,7 @@ static void Main()
         .LogToFile("log.txt", x => $"[{DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss")}][{x.Level}]{x.DumpPayload()}", Encoding.UTF8, autoFlush: true)
         .AddTo(container);
         
-    // Application Running...
+    // Application Running....
         
     // End of Application(Form_Closed/Application_End/Main's last line/etc...)
     cts.Cancel();        // Cancel publish rest of buffered events.
