@@ -3,12 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B09A3A79-15C0-4A4B-A596-C645EF1AD61F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.Core", "EtwStream.Core\EtwStream.Core.csproj", "{160A1602-5FA5-4E54-A2B0-21BD33FE06F3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{492B475A-D99D-4C78-B707-45DFCB290BF4}"
 	ProjectSection(SolutionItems) = preProject
+		.nuget\EtwStream.InProcess.nuspec = .nuget\EtwStream.InProcess.nuspec
 		.nuget\EtwStream.LinqPad.nuspec = .nuget\EtwStream.LinqPad.nuspec
 		.nuget\EtwStream.nuspec = .nuget\EtwStream.nuspec
 		.nuget\NuGet.Config = .nuget\NuGet.Config

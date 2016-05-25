@@ -1,28 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
-        <id>EtwStream.LinqPad</id>
+        <id>EtwStream.InProcess</id>
         <version>1.2.5</version>
-        <title>EtwStream.LinqPad</title>
+        <title>EtwStream.InProcess</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Monitoring ETW is very hard. Now LINQPad is log viewer, you can dump ETW stream.</description>
+        <description>Subset of EtwStream, only for InProcess logging, does not dependent TraceEvent.</description>
         <releaseNotes>
             <![CDATA[
 Create directory if path does not exists at using FileSink.
-Update TraceEvent 1.0.41
             ]]>
         </releaseNotes>
         <language>en-US</language>
         <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
         <projectUrl>https://github.com/neuecc/EtwStream</projectUrl>
-        <tags>ETW TraceEvent EventSource LINQPad</tags>
+        <tags>ETW EventSource</tags>
         <dependencies>
-            <dependency id="EtwStream" version="1.2.4" />
+            <dependency id="Rx-Main" version="2.2.5" />
         </dependencies>
     </metadata>
     <files>
-        <file src="..\EtwStream.LinqPad\bin\Release\EtwStream.LinqPad.dll" target="lib" />
+        <file src="..\EtwStream.InProcess\bin\Release\EtwStream.InProcess.dll" target="lib" />
+        <file src="..\EtwStream.InProcess\bin\Release\EtwStream.InProcess.xml" target="lib" />
     </files>
 </package>

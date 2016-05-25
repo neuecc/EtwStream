@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>EtwStream</id>
-        <version>1.2.4</version>
+        <version>1.2.5</version>
         <title>EtwStream</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -10,7 +10,8 @@
         <description>Logs are event streams. EtwStream provides In-Process and Out-of-Process ObservableEventListener. Everything can compose and output to anywhere by Reactive Extensions.</description>
         <releaseNotes>
             <![CDATA[
-Fixed manifest caching bug, thanks @tanaka-takayoshi, thanks @tanaka-takayoshi
+Create directory if path does not exists at using FileSink.
+Update TraceEvent 1.0.41
             ]]>
         </releaseNotes>
         <language>en-US</language>
@@ -18,7 +19,7 @@ Fixed manifest caching bug, thanks @tanaka-takayoshi, thanks @tanaka-takayoshi
         <projectUrl>https://github.com/neuecc/EtwStream</projectUrl>
         <tags>ETW TraceEvent EventSource</tags>
         <dependencies>
-            <dependency id="Microsoft.Diagnostics.Tracing.TraceEvent" version="1.0.40" />
+            <dependency id="Microsoft.Diagnostics.Tracing.TraceEvent" version="1.0.41" />
             <dependency id="Rx-Main" version="2.2.5" />
         </dependencies>
     </metadata>
