@@ -48,7 +48,11 @@ namespace EtwStream
         {
             var source = eventArgs.EventSource;
             var templates = GetEventSchemaPortions(source);
-            return templates[eventArgs.EventId].Payload;
+
+            EventSchemaPortion portion;
+            return templates.TryGetValue(eventArgs.EventId, out portion)
+                ? portion.Payload
+                : eventArgs.PayloadNames;
         }
 
         /// <summary>
@@ -58,7 +62,11 @@ namespace EtwStream
         {
             var source = eventArgs.EventSource;
             var templates = GetEventSchemaPortions(source);
-            return templates[eventArgs.EventId].KeywordDesciption;
+            
+            EventSchemaPortion portion;
+            return templates.TryGetValue(eventArgs.EventId, out portion)
+                ? portion.KeywordDesciption
+                : eventArgs.Keywords.ToString(); // can't get Keywords...
         }
 
         /// <summary>
@@ -68,7 +76,11 @@ namespace EtwStream
         {
             var source = eventArgs.EventSource;
             var templates = GetEventSchemaPortions(source);
-            return templates[eventArgs.EventId].TaskName;
+            
+            EventSchemaPortion portion;
+            return templates.TryGetValue(eventArgs.EventId, out portion)
+                ? portion.TaskName
+                : eventArgs.Task.ToString(); // can't get TaskName...
         }
 
         public static string DumpFormattedMessage(this System.Diagnostics.Tracing.EventWrittenEventArgs eventArgs)

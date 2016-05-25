@@ -17,11 +17,37 @@ namespace LoggerPerformance
 {
     class Program
     {
+
+        public class Keywords
+        {
+            public const EventKeywords Page = (EventKeywords)1;
+            public const EventKeywords Action = (EventKeywords)2;
+            public const EventKeywords Diagnostics = (EventKeywords)4;
+            public const EventKeywords Access = (EventKeywords)8;
+            public const EventKeywords Batch = (EventKeywords)16;
+            public const EventKeywords Client = (EventKeywords)32;
+            public const EventKeywords Web = (EventKeywords)64;
+
+            public const EventKeywords Kpi = (EventKeywords)128;
+
+
+        }
+
+
         static void Main(string[] args)
         {
+            ObservableEventListener.FromEventSource(MyEventSource.Log).LogToConsole();
+
+            
+            //MyEventSource.Log.Info("hogehoge");
+            MyEventSource.Log.Write("Check", new { uid = 100 });
+
+
+            Console.ReadLine();
+
             //EtwStream.RollCheck();
 
-            EtwStream.Test2();
+            //EtwStream.Test2();
 
 
             //Console.WriteLine("EtwStream");
@@ -118,9 +144,9 @@ namespace LoggerPerformance
             {
                 var cts = new CancellationTokenSource();
                 var d = ObservableEventListener.FromEventSource(MyEventSource.Log)
-                    .Buffer(TimeSpan.FromSeconds(5), 1000, cts.Token)
+                    .Buffer(TimeSpan.FromSeconds(5), 100, cts.Token)
                     //.LogToFile("hoge.txt", x => (string)x.Payload[0], Encoding.UTF8, false);
-                    .LogToRollingFile((dt, i) => $@"EtwStreamLog\RollingCheck{dt.ToString("yyyyMMdd")}-{i}.log", x => x.ToString("yyyyMMdd"), 10000, x => x.DumpPayloadOrMessage(), Encoding.UTF8, true);
+                    .LogToRollingFile((dt, i) => $@"EtwStreamLog\RollingCheck{dt.ToString("yyyyMMdd")}.{i.ToString("00")}.log", x => x.ToString("yyyyMMdd"), 1000, x => x.DumpPayloadOrMessage(), Encoding.UTF8, true);
                 var sw = new Stopwatch();
                 sw.Start();
                 Task.WhenAll(Enumerable.Range(0, 100)

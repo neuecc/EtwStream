@@ -39,10 +39,16 @@ namespace EtwStream
                 return new ReadOnlyDictionary<int, string>(dict);
             });
         }
-        
+
         public static string GetKeywordName(this TraceEvent traceEvent)
         {
-            return cache[traceEvent.ProviderGuid][(int)traceEvent.ID];
+            ReadOnlyDictionary<int, string> schema;
+            string name;
+            return cache.TryGetValue(traceEvent.ProviderGuid, out schema) 
+                ? schema.TryGetValue((int)traceEvent.ID, out name)
+                    ? name
+                    : traceEvent.Keywords.ToString()
+                : traceEvent.Keywords.ToString();
         }
 
         public static ConsoleColor? GetColorMap(this TraceEvent traceEvent, bool isBackgroundWhite)
