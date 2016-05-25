@@ -83,7 +83,7 @@ ObservableEventListener is simple wrapper of `EventListener` and `TraceEvent(Mic
 | LogToRollingFile | Output to flat file with file rotate.
 | LogTo            | LogTo is helper for multiple subscribe.
 
-> How to make original Sink? I recommend log to Azure EventHubs, AWS Kinesis, BigQuery Streaming insert directly. Log to file is legacy way! Document is not available yet. Please see [Sinks](https://github.com/neuecc/EtwStream/tree/master/EtwStream.Core/Sinks) codes and please here to me. 
+> How to make original Sink? I recommend log to Azure EventHubs, AWS Kinesis, BigQuery Streaming insert directly. Log to file is legacy way! Document is not available yet. Please see [Sinks](https://github.com/neuecc/EtwStream/tree/master/EtwStream/Sinks) codes and please here to me. 
 
 > EtwStream's FileSink is fastest file logger, I'll show benchmark results.
 
