@@ -124,6 +124,7 @@ ObservableEventListener.FromTraceEvent("SampleEventSource")
         // RollingFile:
         // fileNameSelector's DateTime is date of file open time, int is number sequence.
         // timestampPattern's DateTime is write time of message. If pattern is different then roll new file.
+        // timestampPattern must be integer at last word.
         var d1 = xs.LogToRollingFile(
             fileNameSelector: (dt, i) => $@"{dt.ToString("yyyyMMdd")}_MyLog_{i.ToString("00")}.log",
             timestampPattern: x => x.ToString("yyyyMMdd"),
