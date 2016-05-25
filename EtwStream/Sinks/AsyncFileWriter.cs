@@ -32,6 +32,11 @@ namespace EtwStream
 
         public AsyncFileWriter(string sinkName, string fileName, Encoding encoding, bool autoFlush)
         {
+            {
+                var fi = new FileInfo(fileName);
+                if (!fi.Directory.Exists) fi.Directory.Create();
+            }
+
             this.FileName = fileName;
             this.sinkName = sinkName;
             this.fileStream = new FileStream(fileName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 4096, true); // useAsync:true
