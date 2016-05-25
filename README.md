@@ -79,8 +79,8 @@ ObservableEventListener is simple wrapper of `EventListener` and `TraceEvent(Mic
 | LogToConsole     | Output by Console.WriteLine with colored.
 | LogToDebug       | Output by Debug.WriteLine.
 | LogToTrace       | Output by Trace.WriteLine.
-| LogToFile        | Output to flat file by true asynchronous I/O's high performance sink.
-| LogToRollingFile | Output to flat file with file rotate rule by true asynchronous I/O's high performance sink.
+| LogToFile        | Output to flat file.
+| LogToRollingFile | Output to flat file with file rotate.
 | LogTo            | LogTo is helper for multiple subscribe.
 
 > How to make original Sink? I recommend log to Azure EventHubs, AWS Kinesis, BigQuery Streaming insert directly. Log to file is legacy way! Document is not available yet. Please see [Sinks](https://github.com/neuecc/EtwStream/tree/master/EtwStream.Core/Sinks) codes and please here to me. 
