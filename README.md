@@ -61,12 +61,13 @@ Observable.Merge(
 
 `withProviderName: true`, shows provider name so you can distinguish merged event source.
 
-EtwStream.Core
+EtwStream.Core/EtwStream.InProcess
 ---
-EtwStream's Core Engine can use all .NET apps, it's In-Process logger.
+EtwStream's Core Engine can use all .NET apps. `EtwStream` is both for In-Process and Out-of-Process. `EtwStream.InProcess` is subset of `EtwStream`, only for In-Process logging so it no dependent `Microsoft.Diagnostics.Tracing.TraceEvent`.
 
 ```
 PM> Install-Package EtwStream
+PM> Install-Package EtwStream.InProcess
 ```
 
 ObservableEventListener is simple wrapper of `EventListener` and `TraceEvent(Microsoft.Diagnostics.Tracing.TraceEvent)`. You can control there easily.
