@@ -6,16 +6,20 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Diagnostics.Tracing;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Diagnostics.Tracing;
+#if TRACE_EVENT
+using Microsoft.Diagnostics.Tracing;
+#endif
 
 namespace EtwStream
 {
     public static class FileSink
     {
         // TraceEvent
+
+#if TRACE_EVENT
 
         public static IDisposable LogToFile(this IObservable<TraceEvent> source, string fileName, Func<TraceEvent, string> messageFormatter, Encoding encoding, bool autoFlush)
         {
@@ -30,6 +34,8 @@ namespace EtwStream
             var subscription = source.Subscribe(sink);
             return sink.CreateLinkedDisposable(subscription);
         }
+
+#endif
 
         // EventArgs
 
@@ -64,6 +70,8 @@ namespace EtwStream
         }
 
         // Sinks
+
+#if TRACE_EVENT
 
         class TraceEventSink : SinkBase<TraceEvent>
         {
@@ -111,6 +119,8 @@ namespace EtwStream
                 asyncFileWriter.Finalize();
             }
         }
+
+#endif
 
         class EventWrittenEventArgsSink : SinkBase<EventWrittenEventArgs>
         {

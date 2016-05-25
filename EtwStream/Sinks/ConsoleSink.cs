@@ -7,13 +7,17 @@ using System.Reactive.Threading.Tasks;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+#if TRACE_EVENT
 using Microsoft.Diagnostics.Tracing;
+#endif
 
 namespace EtwStream
 {
     public static class ConsoleSink
     {
         // TraceEvent
+
+#if TRACE_EVENT
 
         public static IDisposable LogToConsole(this IObservable<TraceEvent> source)
         {
@@ -42,6 +46,8 @@ namespace EtwStream
             var subscription = source.Subscribe(sink);
             return sink.CreateLinkedDisposable(subscription);
         }
+
+#endif
 
         // EventArgs
 
@@ -87,6 +93,8 @@ namespace EtwStream
 
         // Sinks
 
+#if TRACE_EVENT
+
         class TraceEventSink : SinkBase<TraceEvent>
         {
             static readonly object consoleColorChangeLock = new object();
@@ -131,6 +139,8 @@ namespace EtwStream
                 }
             }
         }
+
+#endif
 
         class EventWrittenEventArgsSink : SinkBase<EventWrittenEventArgs>
         {

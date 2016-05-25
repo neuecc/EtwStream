@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Diagnostics.Tracing.Session;
 
 namespace EtwStream
 {
@@ -13,10 +12,15 @@ namespace EtwStream
         public static Guid ConcurrentCollectionsEventSource => Guid.Parse("35167F8E-49B2-4b96-AB86-435B59336B5E");
         public static Guid SynchronizationEventSource => Guid.Parse("EC631D38-466B-4290-9306-834971BA0217");
         public static Guid TplEventSource => Guid.Parse("2e5dba47-a3d2-4d16-8ee0-6671ffdcd7b5");
-        public static Guid PinnableBufferCacheEventSource => TraceEventProviders.GetEventSourceGuidFromName("Microsoft-DotNETRuntime-PinnableBufferCache-System");
         public static Guid PlinqEventSource => Guid.Parse("159eeeec-4a14-4418-a8fe-faabcd987887");
-        public static Guid SqlEventSource => TraceEventProviders.GetEventSourceGuidFromName("Microsoft-AdoNet-SystemData");
         public static Guid AspNetEventSource => Guid.Parse("ee799f41-cfa5-550b-bf2c-344747c1c668");
+
+#if TRACE_EVENT
+
+        public static Guid PinnableBufferCacheEventSource => Microsoft.Diagnostics.Tracing.Session.TraceEventProviders.GetEventSourceGuidFromName("Microsoft-DotNETRuntime-PinnableBufferCache-System");
+        public static Guid SqlEventSource => Microsoft.Diagnostics.Tracing.Session.TraceEventProviders.GetEventSourceGuidFromName("Microsoft-AdoNet-SystemData");
+
+#endif
     }
 
     public static class IISEventSources

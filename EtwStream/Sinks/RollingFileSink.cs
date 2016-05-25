@@ -6,17 +6,21 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Diagnostics.Tracing;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Diagnostics.Tracing;
 using System.Text.RegularExpressions;
+#if TRACE_EVENT
+using Microsoft.Diagnostics.Tracing;
+#endif
 
 namespace EtwStream
 {
     public static class RollingFileSink
     {
         // TraceEvent
+
+#if TRACE_EVENT
 
         public static IDisposable LogToRollingFile(this IObservable<TraceEvent> source, Func<DateTime, int, string> fileNameSelector, Func<DateTime, string> timestampPattern, int rollSizeKB, Func<TraceEvent, string> messageFormatter, Encoding encoding, bool autoFlush)
         {
@@ -31,6 +35,8 @@ namespace EtwStream
             var subscription = source.Subscribe(sink);
             return sink.CreateLinkedDisposable(subscription);
         }
+
+#endif
 
         // EventArgs
 
@@ -96,7 +102,7 @@ namespace EtwStream
                 this.rollSizeInBytes = rollSizeKB * 1024;
                 this.encoding = encoding;
                 this.autoFlush = autoFlush;
-                
+
                 ValidateFileNameSelector();
             }
 
@@ -277,6 +283,7 @@ namespace EtwStream
             }
         }
 
+#if TRACE_EVENT
 
         class TraceEventSink : RollingFileSinkBase<TraceEvent>
         {
@@ -291,6 +298,8 @@ namespace EtwStream
             {
             }
         }
+
+#endif
 
         class EventWrittenEventArgsSink : RollingFileSinkBase<EventWrittenEventArgs>
         {

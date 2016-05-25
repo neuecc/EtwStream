@@ -8,13 +8,18 @@ using System.Reactive.Threading.Tasks;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if TRACE_EVENT
 using Microsoft.Diagnostics.Tracing;
+#endif
 
 namespace EtwStream
 {
     public static class DebugSink
     {
         // TraceEvent
+
+#if TRACE_EVENT
 
         public static IDisposable LogToDebug(this IObservable<TraceEvent> source)
         {
@@ -25,6 +30,8 @@ namespace EtwStream
         {
             return source.Subscribe(x => Debug.WriteLine(messageFormatter(x)));
         }
+
+#endif
 
         // EventArgs
 

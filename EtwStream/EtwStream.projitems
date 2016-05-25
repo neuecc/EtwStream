@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>7d6b5012-7065-4177-9c8a-46766c41aa59</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>EtwStream</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)EtwStreamEventSource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EtwStreamObservableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EventWrittenEventArgsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Json\TinyJson.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ObservableEventListener.EventSource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ObservableEventListener.Tail.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sinks\AsyncFileWriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sinks\ConsoleSink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sinks\DebugSink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sinks\FileSink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sinks\RollingFileSink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sinks\SinkBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sinks\SinkExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sinks\TraceSink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SubscriptionContainer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownEventSources.cs" />
+  </ItemGroup>
+</Project>

@@ -22,7 +22,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;TRACE_EVENT</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Debug\EtwStream.Core.xml</DocumentationFile>
@@ -31,7 +31,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;TRACE_EVENT</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Release\EtwStream.Core.xml</DocumentationFile>
@@ -66,30 +66,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EtwStreamEventSource.cs" />
-    <Compile Include="EventWrittenEventArgsExtensions.cs" />
-    <Compile Include="Sinks\AsyncFileWriter.cs" />
-    <Compile Include="Sinks\RollingFileSink.cs" />
-    <Compile Include="Sinks\FileSink.cs" />
-    <Compile Include="Sinks\SinkExtensions.cs" />
-    <Compile Include="Sinks\TraceSink.cs" />
-    <Compile Include="Sinks\DebugSink.cs" />
-    <Compile Include="SubscriptionContainer.cs" />
-    <Compile Include="ObservableEventListener.EventSource.cs" />
     <Compile Include="ObservableEventListener.TraceEvent.cs" />
-    <Compile Include="EtwStreamObservableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sinks\ConsoleSink.cs" />
-    <Compile Include="Sinks\SinkBase.cs" />
-    <Compile Include="Json\TinyJson.cs" />
     <Compile Include="TraceEventExtensions.cs" />
-    <Compile Include="WellKnownEventSources.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ObservableEventListener.Tail.cs" />
     <None Include="EtwStream.snk" />
     <None Include="packages.config" />
   </ItemGroup>
+  <Import Project="..\EtwStream\EtwStream.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
