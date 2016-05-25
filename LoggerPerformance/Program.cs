@@ -11,6 +11,7 @@ using EtwStream;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Formatters;
 using Serilog;
 using Serilog.Sinks;
+using System.Reactive.Linq;
 
 namespace LoggerPerformance
 {
@@ -18,11 +19,24 @@ namespace LoggerPerformance
     {
         static void Main(string[] args)
         {
-            NLoog.Run();
-            // Slab.Run();
+            //EtwStream.RollCheck();
+
+            EtwStream.Test2();
+
+
+            //Console.WriteLine("EtwStream");
             //EtwStream.Run();
-            // Serilooog.Run();
-            //EtwStream.Test();
+
+            //Console.WriteLine("NLog");
+            //NLoog.Run();
+
+            //Console.WriteLine("Slab");
+            //Slab.Run();
+
+
+            //Console.WriteLine("Serilooog");
+            //Serilooog.Run();
+            ////EtwStream.Test();
         }
 
         static class EtwStream
@@ -76,6 +90,57 @@ namespace LoggerPerformance
                 Console.ReadLine();
                 cts.Cancel();
                 subscription.Dispose();
+            }
+
+            public static void Test2()
+            {
+                var cts = new CancellationTokenSource();
+
+                var subscription = ObservableEventListener.FromEventSource(MyEventSource.Log)
+                    .Buffer(TimeSpan.FromSeconds(5), 1000, cts.Token)
+                    .LogToFile("etw.txt", x => DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss,fff") + " " + "Info " + x.Payload[0], Encoding.UTF8, true);
+
+                Observable.Timer(TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(8))
+                    .Subscribe(_ =>
+                    {
+                        loggger.Info("hogehogehogehoge");
+                    });
+
+
+
+                Console.WriteLine("waiting...");
+                Console.ReadLine();
+                cts.Cancel();
+                subscription.Dispose();
+            }
+
+            public static void RollCheck()
+            {
+                var cts = new CancellationTokenSource();
+                var d = ObservableEventListener.FromEventSource(MyEventSource.Log)
+                    .Buffer(TimeSpan.FromSeconds(5), 1000, cts.Token)
+                    //.LogToFile("hoge.txt", x => (string)x.Payload[0], Encoding.UTF8, false);
+                    .LogToRollingFile((dt, i) => $@"EtwStreamLog\RollingCheck{dt.ToString("yyyyMMdd")}-{i}.log", x => x.ToString("yyyyMMdd"), 10000, x => x.DumpPayloadOrMessage(), Encoding.UTF8, true);
+                var sw = new Stopwatch();
+                sw.Start();
+                Task.WhenAll(Enumerable.Range(0, 100)
+                    .Select(async (i) =>
+                    {
+                        foreach (var j in Enumerable.Range(0, 10000))
+                        {
+                            await Task.Run(() =>
+                            {
+                                MyEventSource.Log.Info($"abc{i}:{j}");
+                            });
+                        }
+                    }))
+                    .Wait();
+
+                cts.Cancel();
+                d.Dispose();
+
+                sw.Stop();
+                Console.WriteLine("elapsed {0}", sw.Elapsed);
             }
         }
 

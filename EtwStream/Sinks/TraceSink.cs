@@ -31,6 +31,16 @@ namespace EtwStream
             return source.Subscribe(x => Trace.WriteLine(messageFormatter(x)));
         }
 
+        public static IDisposable LogToTrace(this IObservable<IList<TraceEvent>> source)
+        {
+            return source.Subscribe(xs => xs.FastForEach(x => Trace.WriteLine(x.EventName + ": " + x.DumpPayloadOrMessage())));
+        }
+
+        public static IDisposable LogToTrace(this IObservable<IList<TraceEvent>> source, Func<TraceEvent, string> messageFormatter)
+        {
+            return source.Subscribe(xs => xs.FastForEach(x => Trace.WriteLine(messageFormatter(x))));
+        }
+
 #endif
 
         // EventArgs
@@ -45,6 +55,16 @@ namespace EtwStream
             return source.Subscribe(x => Trace.WriteLine(messageFormatter(x)));
         }
 
+        public static IDisposable LogToTrace(this IObservable<IList<EventWrittenEventArgs>> source)
+        {
+            return source.Subscribe(xs => xs.FastForEach(x => Trace.WriteLine(x.EventName + ": " + x.DumpPayloadOrMessage())));
+        }
+
+        public static IDisposable LogToTrace(this IObservable<IList<EventWrittenEventArgs>> source, Func<EventWrittenEventArgs, string> messageFormatter)
+        {
+            return source.Subscribe(xs => xs.FastForEach(x => Trace.WriteLine(messageFormatter(x))));
+        }
+
         // String
 
         public static IDisposable LogToTrace(this IObservable<string> source)
@@ -52,9 +72,9 @@ namespace EtwStream
             return source.Subscribe(x => Trace.WriteLine(x));
         }
 
-        public static Task LogToTraceAsync(this IObservable<string> source)
+        public static IDisposable LogToTrace(this IObservable<IList<string>> source)
         {
-            return source.Do(x => Trace.WriteLine(x)).DefaultIfEmpty().ToTask();
+            return source.Subscribe(xs => xs.FastForEach(x => Trace.WriteLine(x)));
         }
     }
 }

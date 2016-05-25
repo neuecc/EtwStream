@@ -99,7 +99,7 @@ static void Main()
     // configure log
     ObservableEventListener.FromTraceEvent("SampleEventSource")
         .Buffer(TimeSpan.FromSeconds(5), 1000, cts.Token)
-        .LogToFile("log.txt", x => $"[{DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss")}][{x.Level}]{x.DumpPayload()}", Encoding.UTF8, autoFlush: false)
+        .LogToFile("log.txt", x => $"[{DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss")}][{x.Level}]{x.DumpPayload()}", Encoding.UTF8, autoFlush: true)
         .AddTo(container);
         
     // Application Running...
@@ -111,6 +111,43 @@ static void Main()
 ```
 
 `Buffer(TimeSpan, int, CancellationToken)` and `TakeUntil(CancellationToken)` is special helper methods of EtwStream. Please use before Subscribe(LogTo) operator. After Subscribe(LogTo), you can use `AddTo` helper method to `SubscriptionContainer`. It enables wait subscription complete with `CancellationToken`.
+
+LogTo and LogToRollingFile example
+
+```csharp
+ObservableEventListener.FromTraceEvent("SampleEventSource")
+    .Buffer(TimeSpan.FromSeconds(5), 1000, cts.Token)
+    .LogTo(xs =>
+    {
+        // LogTo defines multiple output.
+
+        // RollingFile:
+        // fileNameSelector's DateTime is date of file open time, int is number sequence.
+        // timestampPattern's DateTime is write time of message. If pattern is different then roll new file.
+        var d1 = xs.LogToRollingFile(
+            fileNameSelector: (dt, i) => $@"{dt.ToString("yyyyMMdd")}Log-{i}.log",
+            timestampPattern: x => x.ToString("yyyyMMdd"),
+            rollSizeKB: 10000,
+            messageFormatter: x => x.DumpPayloadOrMessage(),
+            encoding: Encoding.UTF8,
+            autoFlush: false);
+
+        var d2 = xs.LogToConsole();
+        var d3 = xs.LogToDebug();
+
+        return new[] { d1, d2, d3 }; // return all subscriptions
+    })
+    .AddTo(container);
+```
+
+EventWrittenEventArgs and TraceEvent are extended some methos for format message. 
+
+| Method               | Description
+| -------------------- | ---------------------------------------------------------
+| DumpPayload          | Convert payloads to human readable message. 
+| DumpPayloadOrMessage | If message is exists, return formatted message. Otherwise convert payloads to human readable message.  
+| DumpFormattedMessage | (EventWrittenEventArgs only), return formatted message.
+| ToJson               | Return json formatted payloads.
 
 EtwStream.Service
 ---
@@ -129,7 +166,7 @@ Configuration is csx. You can write full Rx and C# codes. for example
 // Output format is Func<TraceEvent, string>
 ObservableEventListener.FromTraceEvent("SampleEventSource")
     .Buffer(TimeSpan.FromSeconds(5), 1000, EtwStreamService.TerminateToken)
-    .LogToFile("log.txt", x => $"[{DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss")}][{x.Level}]{x.DumpPayload()}", Encoding.UTF8, autoFlush: false)
+    .LogToFile("log.txt", x => $"[{DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss")}][{x.Level}]{x.DumpPayload()}", Encoding.UTF8, autoFlush: true)
     .AddTo(EtwStreamService.Container);
 ```
 

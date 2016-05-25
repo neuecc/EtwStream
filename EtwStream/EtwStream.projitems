@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Sinks\AsyncFileWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Sinks\ConsoleSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Sinks\DebugSink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sinks\EnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Sinks\FileSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Sinks\RollingFileSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Sinks\SinkBase.cs" />

@@ -31,6 +31,16 @@ namespace EtwStream
             return source.Subscribe(x => Debug.WriteLine(messageFormatter(x)));
         }
 
+        public static IDisposable LogToDebug(this IObservable<IList<TraceEvent>> source)
+        {
+            return source.Subscribe(xs => xs.FastForEach(x => Debug.WriteLine(x.EventName + ": " + x.DumpPayloadOrMessage())));
+        }
+
+        public static IDisposable LogToDebug(this IObservable<IList<TraceEvent>> source, Func<TraceEvent, string> messageFormatter)
+        {
+            return source.Subscribe(xs => xs.FastForEach(x => Debug.WriteLine(messageFormatter(x))));
+        }
+
 #endif
 
         // EventArgs
@@ -45,11 +55,26 @@ namespace EtwStream
             return source.Subscribe(x => Debug.WriteLine(messageFormatter(x)));
         }
 
+        public static IDisposable LogToDebug(this IObservable<IList<EventWrittenEventArgs>> source)
+        {
+            return source.Subscribe(xs => xs.FastForEach(x => Debug.WriteLine(x.EventName + ": " + x.DumpPayloadOrMessage())));
+        }
+
+        public static IDisposable LogToDebug(this IObservable<IList<EventWrittenEventArgs>> source, Func<EventWrittenEventArgs, string> messageFormatter)
+        {
+            return source.Subscribe(xs => xs.FastForEach(x => Debug.WriteLine(messageFormatter(x))));
+        }
+
         // String
 
         public static IDisposable LogToDebug(this IObservable<string> source)
         {
             return source.Subscribe(x => Debug.WriteLine(x));
+        }
+
+        public static IDisposable LogToDebug(this IObservable<IList<string>> source)
+        {
+            return source.Subscribe(xs => xs.FastForEach(x => Debug.WriteLine(x)));
         }
     }
 }

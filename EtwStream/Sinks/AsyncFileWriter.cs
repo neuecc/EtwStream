@@ -14,7 +14,7 @@ namespace EtwStream
 {
     internal class AsyncFileWriter
     {
-        readonly ConcurrentQueue<string> q = new ConcurrentQueue<string>();
+        readonly BlockingCollection<string> q = new BlockingCollection<string>();
         readonly object gate = new object();
         readonly string sinkName;
         readonly FileStream fileStream;
@@ -23,9 +23,9 @@ namespace EtwStream
         readonly bool autoFlush;
         readonly byte[] newLine;
 
-        Task lastQueueWorker;
-        bool isConsuming = false;
+        readonly Task processingTask;
         int isDisposed = 0;
+        readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         public string FileName { get; private set; }
         public long CurrentStreamLength { get; private set; }
@@ -39,92 +39,73 @@ namespace EtwStream
 
             this.FileName = fileName;
             this.sinkName = sinkName;
-            this.fileStream = new FileStream(fileName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 4096, true); // useAsync:true
+            this.fileStream = new FileStream(fileName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 4096, useAsync: false); // useAsync:false, use dedicated processor
             this.encoding = encoding;
             this.autoFlush = autoFlush;
-            this.lastQueueWorker = Task.CompletedTask;
+
             this.newLine = encoding.GetBytes(Environment.NewLine);
             this.CurrentStreamLength = fileStream.Length;
+
+            this.processingTask = Task.Factory.StartNew(ConsumeQueue, TaskCreationOptions.LongRunning);
         }
 
-        bool SwitchStartConsume()
+        void ConsumeQueue()
         {
-            lock (gate)
-            {
-                if (isConsuming)
-                {
-                    return false;
-                }
-                else
-                {
-                    isConsuming = true;
-                    return true;
-                }
-            }
-        }
-
-        async Task ConsumeQueue()
-        {
-            CONSUME_AGAIN:
-            while (true)
+            while (!cancellationTokenSource.IsCancellationRequested)
             {
                 string nextString;
-                if (q.TryDequeue(out nextString))
+                try
                 {
-                    try
+                    if (q.TryTake(out nextString, Timeout.Infinite, cancellationTokenSource.Token))
                     {
-                        var bytes = encoding.GetBytes(nextString);
-                        CurrentStreamLength += bytes.Length + newLine.Length;
-                        if (!autoFlush)
+                        try
                         {
-                            await fileStream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
-                            fileStream.Write(newLine, 0, newLine.Length);
+                            var bytes = encoding.GetBytes(nextString);
+                            CurrentStreamLength += bytes.Length + newLine.Length;
+                            if (!autoFlush)
+                            {
+                                fileStream.Write(bytes, 0, bytes.Length);
+                                fileStream.Write(newLine, 0, newLine.Length);
+                            }
+                            else
+                            {
+                                fileStream.Write(bytes, 0, bytes.Length);
+                                fileStream.Write(newLine, 0, newLine.Length);
+                                fileStream.Flush();
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            await fileStream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
-                            fileStream.Write(newLine, 0, newLine.Length);
-                            await fileStream.FlushAsync().ConfigureAwait(false);
+                            EtwStreamEventSource.Log.SinkError(sinkName, "FileStream Write/Flush failed", ex.ToString());
                         }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        EtwStreamEventSource.Log.SinkError(sinkName, "FileStream Write/Flush failed", ex.ToString());
+                        break;
                     }
                 }
-                else
+                catch (OperationCanceledException)
                 {
                     break;
                 }
-            }
-            lock (gate)
-            {
-                // inlock, onNext enqued string and now checking isConsuming
-                if (q.Count == 0)
+                catch (ObjectDisposedException)
                 {
-                    isConsuming = false;
-                }
-                else
-                {
-                    goto CONSUME_AGAIN;
+                    break;
                 }
             }
         }
 
         public void Enqueue(string value)
         {
-            q.Enqueue(value);
-            if (SwitchStartConsume())
-            {
-                lastQueueWorker = ConsumeQueue();
-            }
+            q.Add(value);
         }
 
-        public List<string> Finalize()
+        public string[] Finalize()
         {
             if (Interlocked.Increment(ref isDisposed) == 1)
             {
-                this.lastQueueWorker.Wait();
+                cancellationTokenSource.Cancel();
+                processingTask.Wait();
                 try
                 {
                     this.fileStream.Close();
@@ -135,14 +116,7 @@ namespace EtwStream
                 }
 
                 // rest line...
-                var list = new List<string>();
-                string r;
-                while (q.TryDequeue(out r))
-                {
-                    list.Add(r);
-                }
-
-                return list;
+                return q.ToArray();
             }
             return null;
         }

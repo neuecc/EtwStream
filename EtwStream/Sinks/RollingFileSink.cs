@@ -22,6 +22,16 @@ namespace EtwStream
 
 #if TRACE_EVENT
 
+        /// <summary>
+        /// Write to text file, file is rolled.
+        /// </summary>
+        /// <param name="source">Event source.</param>
+        /// <param name="fileNameSelector">Selector of output file name. DateTime is date of file open time, int is number sequence.</param>
+        /// <param name="timestampPattern">Pattern of rolling identifier. DateTime is write time of message. If pattern is different roll new file.</param>
+        /// <param name="rollSizeKB">Size of start next file.</param>
+        /// <param name="messageFormatter">Converter of message per line.</param>
+        /// <param name="encoding">String encoding.</param>
+        /// <param name="autoFlush">If true, call Flush on every write.</param>
         public static IDisposable LogToRollingFile(this IObservable<TraceEvent> source, Func<DateTime, int, string> fileNameSelector, Func<DateTime, string> timestampPattern, int rollSizeKB, Func<TraceEvent, string> messageFormatter, Encoding encoding, bool autoFlush)
         {
             var sink = new TraceEventSink(fileNameSelector, timestampPattern, rollSizeKB, messageFormatter, encoding, autoFlush);
@@ -29,6 +39,16 @@ namespace EtwStream
             return sink.CreateLinkedDisposable(subscription);
         }
 
+        /// <summary>
+        /// Write to text file, file is rolled.
+        /// </summary>
+        /// <param name="source">Event source.</param>
+        /// <param name="fileNameSelector">Selector of output file name. DateTime is date of file open time, int is number sequence.</param>
+        /// <param name="timestampPattern">Pattern of rolling identifier. DateTime is write time of message. If pattern is different roll new file.</param>
+        /// <param name="rollSizeKB">Size of start next file.</param>
+        /// <param name="messageFormatter">Converter of message per line.</param>
+        /// <param name="encoding">String encoding.</param>
+        /// <param name="autoFlush">If true, call Flush on every write.</param>
         public static IDisposable LogToRollingFile(this IObservable<IList<TraceEvent>> source, Func<DateTime, int, string> fileNameSelector, Func<DateTime, string> timestampPattern, int rollSizeKB, Func<TraceEvent, string> messageFormatter, Encoding encoding, bool autoFlush)
         {
             var sink = new TraceEventSink(fileNameSelector, timestampPattern, rollSizeKB, messageFormatter, encoding, autoFlush);
@@ -40,6 +60,16 @@ namespace EtwStream
 
         // EventArgs
 
+        /// <summary>
+        /// Write to text file, file is rolled.
+        /// </summary>
+        /// <param name="source">Event source.</param>
+        /// <param name="fileNameSelector">Selector of output file name. DateTime is date of file open time, int is number sequence.</param>
+        /// <param name="timestampPattern">Pattern of rolling identifier. DateTime is write time of message. If pattern is different roll new file.</param>
+        /// <param name="rollSizeKB">Size of start next file.</param>
+        /// <param name="messageFormatter">Converter of message per line.</param>
+        /// <param name="encoding">String encoding.</param>
+        /// <param name="autoFlush">If true, call Flush on every write.</param>
         public static IDisposable LogToRollingFile(this IObservable<EventWrittenEventArgs> source, Func<DateTime, int, string> fileNameSelector, Func<DateTime, string> timestampPattern, int rollSizeKB, Func<EventWrittenEventArgs, string> messageFormatter, Encoding encoding, bool autoFlush)
         {
             var sink = new EventWrittenEventArgsSink(fileNameSelector, timestampPattern, rollSizeKB, messageFormatter, encoding, autoFlush);
@@ -47,6 +77,16 @@ namespace EtwStream
             return sink.CreateLinkedDisposable(subscription);
         }
 
+        /// <summary>
+        /// Write to text file, file is rolled.
+        /// </summary>
+        /// <param name="source">Event source.</param>
+        /// <param name="fileNameSelector">Selector of output file name. DateTime is date of file open time, int is number sequence.</param>
+        /// <param name="timestampPattern">Pattern of rolling identifier. DateTime is write time of message. If pattern is different roll new file.</param>
+        /// <param name="rollSizeKB">Size of start next file.</param>
+        /// <param name="messageFormatter">Converter of message per line.</param>
+        /// <param name="encoding">String encoding.</param>
+        /// <param name="autoFlush">If true, call Flush on every write.</param>
         public static IDisposable LogToRollingFile(this IObservable<IList<EventWrittenEventArgs>> source, Func<DateTime, int, string> fileNameSelector, Func<DateTime, string> timestampPattern, int rollSizeKB, Func<EventWrittenEventArgs, string> messageFormatter, Encoding encoding, bool autoFlush)
         {
             var sink = new EventWrittenEventArgsSink(fileNameSelector, timestampPattern, rollSizeKB, messageFormatter, encoding, autoFlush);
@@ -56,6 +96,15 @@ namespace EtwStream
 
         // string
 
+        /// <summary>
+        /// Write to text file, file is rolled.
+        /// </summary>
+        /// <param name="source">Event source.</param>
+        /// <param name="fileNameSelector">Selector of output file name. DateTime is date of file open time, int is number sequence.</param>
+        /// <param name="timestampPattern">Pattern of rolling identifier. DateTime is write time of message. If pattern is different roll new file.</param>
+        /// <param name="rollSizeKB">Size of start next file.</param>
+        /// <param name="encoding">String encoding.</param>
+        /// <param name="autoFlush">If true, call Flush on every write.</param>
         public static IDisposable LogToRollingFile(this IObservable<string> source, Func<DateTime, int, string> fileNameSelector, Func<DateTime, string> timestampPattern, int rollSizeKB, Encoding encoding, bool autoFlush)
         {
             var sink = new StringSink(fileNameSelector, timestampPattern, rollSizeKB, encoding, autoFlush);
@@ -63,6 +112,15 @@ namespace EtwStream
             return sink.CreateLinkedDisposable(subscription);
         }
 
+        /// <summary>
+        /// Write to text file, file is rolled.
+        /// </summary>
+        /// <param name="source">Event source.</param>
+        /// <param name="fileNameSelector">Selector of output file name. DateTime is date of file open time, int is number sequence.</param>
+        /// <param name="timestampPattern">Pattern of rolling identifier. DateTime is write time of message. If pattern is different roll new file.</param>
+        /// <param name="rollSizeKB">Size of start next file.</param>
+        /// <param name="encoding">String encoding.</param>
+        /// <param name="autoFlush">If true, call Flush on every write.</param>
         public static IDisposable LogToRollingFile(this IObservable<IList<string>> source, Func<DateTime, int, string> fileNameSelector, Func<DateTime, string> timestampPattern, int rollSizeKB, Encoding encoding, bool autoFlush)
         {
             var sink = new StringSink(fileNameSelector, timestampPattern, rollSizeKB, encoding, autoFlush);
@@ -83,6 +141,7 @@ namespace EtwStream
             readonly Encoding encoding;
             readonly bool autoFlush;
             readonly long rollSizeInBytes;
+            readonly Action<T> onNextCore;
 
             string currentTimestampPattern;
 
@@ -102,6 +161,7 @@ namespace EtwStream
                 this.rollSizeInBytes = rollSizeKB * 1024;
                 this.encoding = encoding;
                 this.autoFlush = autoFlush;
+                this.onNextCore = OnNextCore;
 
                 ValidateFileNameSelector();
             }
@@ -193,7 +253,7 @@ namespace EtwStream
                                 break;
                             }
 
-                            List<string> safe;
+                            string[] safe;
                             try
                             {
                                 safe = disposeTarget?.Finalize(); // block!
@@ -246,28 +306,21 @@ namespace EtwStream
             public override void OnNext(T value)
             {
                 CheckFileRolling();
-
-                string v;
-                try
-                {
-                    v = messageFormatter(value);
-                }
-                catch (Exception ex)
-                {
-                    EtwStreamEventSource.Log.SinkError(nameof(RollingFileSink), "messageFormatter convert failed", ex.ToString());
-                    return;
-                }
-                asyncFileWriter.Enqueue(v);
+                OnNextCore(value);
             }
 
             public override void OnNext(IList<T> value)
             {
                 CheckFileRolling();
+                value.FastForEach(onNextCore);
+            }
 
+            void OnNextCore(T value)
+            {
                 string v;
                 try
                 {
-                    v = string.Join(Environment.NewLine, value.Select(x => messageFormatter(x)));
+                    v = messageFormatter(value);
                 }
                 catch (Exception ex)
                 {
