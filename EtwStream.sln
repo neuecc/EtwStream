@@ -29,6 +29,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "EtwStream", "EtwStream\EtwS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.InProcess", "EtwStream.InProcess\EtwStream.InProcess.csproj", "{0C93F26E-3886-4D66-80EA-341896B91A95}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwStream.Remote", "EtwStream.Remote\EtwStream.Remote.csproj", "{402021D2-484F-42B4-8A32-A49798CDF966}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		EtwStream\EtwStream.projitems*{0c93f26e-3886-4d66-80ea-341896b91a95}*SharedItemsImports = 4
@@ -64,6 +66,10 @@ Global
 		{0C93F26E-3886-4D66-80EA-341896B91A95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C93F26E-3886-4D66-80EA-341896B91A95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C93F26E-3886-4D66-80EA-341896B91A95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{402021D2-484F-42B4-8A32-A49798CDF966}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{402021D2-484F-42B4-8A32-A49798CDF966}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{402021D2-484F-42B4-8A32-A49798CDF966}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{402021D2-484F-42B4-8A32-A49798CDF966}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

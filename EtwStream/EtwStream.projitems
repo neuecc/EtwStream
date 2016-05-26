@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)EtwStreamEventSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EtwStreamObservableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EventEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EventWrittenEventArgsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Json\TinyJson.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObservableEventListener.EventSource.cs" />

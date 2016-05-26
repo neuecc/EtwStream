@@ -18,29 +18,15 @@ namespace LoggerPerformance
     class Program
     {
 
-        public class Keywords
-        {
-            public const EventKeywords Page = (EventKeywords)1;
-            public const EventKeywords Action = (EventKeywords)2;
-            public const EventKeywords Diagnostics = (EventKeywords)4;
-            public const EventKeywords Access = (EventKeywords)8;
-            public const EventKeywords Batch = (EventKeywords)16;
-            public const EventKeywords Client = (EventKeywords)32;
-            public const EventKeywords Web = (EventKeywords)64;
-
-            public const EventKeywords Kpi = (EventKeywords)128;
-
-
-        }
-
+      
 
         static void Main(string[] args)
         {
             ObservableEventListener.FromEventSource(MyEventSource.Log).LogToConsole();
 
             
-            //MyEventSource.Log.Info("hogehoge");
-            MyEventSource.Log.Write("Check", new { uid = 100 });
+            MyEventSource.Log.Info("hogehoge");
+            //MyEventSource.Log.Write("Check", new { uid = 100 });
 
 
             Console.ReadLine();
