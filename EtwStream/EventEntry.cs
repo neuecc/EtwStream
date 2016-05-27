@@ -14,6 +14,10 @@ namespace EtwStream
     /// </summary>
     public class EventEntry
     {
+        static readonly ReadOnlyCollection<object> EmptyPayload = new ReadOnlyCollection<object>(new object[0]);
+        static readonly ReadOnlyCollection<string> EmptyPayloadNames = new ReadOnlyCollection<string>(new string[0]);
+        static readonly Encoding Encoding = new UTF8Encoding(false);
+
         public Guid ActivityID { get; set; }
         public int EventId { get; set; }
         public string EventName { get; set; }
@@ -81,6 +85,81 @@ namespace EtwStream
         }
 
         // TODO:ToJson, FromJson
+
+        public byte[] Serialize()
+        {
+            // [16] ActivityID
+            // [4] EventId
+            // [4] Length of EventName
+            // [x] EventName
+            // [8] Keywords
+            // [4] Length of KeywordName
+            // [x] KeywordName
+            // [4] Level
+            // [4] Length of FormattedMessage
+            // [x] FormattedMessage
+            // [4] Opcode
+            // [4] Length of OpcodeName
+            // [x] OpcodeName
+            // [4] Task
+            // [4] Length of TaskName
+            // [x] TaskName
+            // [4] Version
+
+            // [4] Payload Length
+            // -- Loop: [4] PayloadType, [,]Length + Value
+            // [4] PayloadNames Length
+            // -- Loop: [4] NameLength, [x] Name
+
+
+            using (var ms = new MemoryStream())
+            using (var bw = new BinaryWriter(ms, new UTF8Encoding(false)))
+            {
+                bw.Write(this.ActivityID.ToByteArray());
+                bw.Write(this.EventId);
+                bw.Write(this.EventName?.Length ?? 0);// todo:encode!
+                bw.Write(this.EventName ?? "");
+
+                bw.Write((long)this.Keywords);
+                bw.Write(this.KeywordName?.Length ?? 0);// todo:encode!
+                bw.Write(this.KeywordName ?? "");
+                bw.Write((int)this.Level);
+                bw.Write(this.FormattedMessage?.Length ?? 0); // todo:encode!
+                bw.Write(this.FormattedMessage ?? "");
+                bw.Write((int)this.Opcode);
+                bw.Write(this.OpcodeName?.Length ?? 0);// todo:encode!
+                bw.Write(this.OpcodeName ?? "");
+                bw.Write((int)this.Task);
+                bw.Write(this.TaskName ?? "");
+                bw.Write(this.Version);
+
+                var payload = this.Payload ?? EmptyPayload;
+                bw.Write(payload.Count);
+                foreach (var item in payload)
+                {
+                    WritePayload(bw, item);
+                }
+
+                var payloadNames = this.PayloadNames ?? EmptyPayloadNames;
+                bw.Write(payloadNames.Count);
+                foreach (var item in payloadNames)
+                {
+                    var b = Encoding.GetBytes(item);
+                    bw.Write(b.Length);
+                    bw.Write(b);
+                }
+
+
+
+                return ms.ToArray();
+            }
+        }
+
+        void WritePayload(BinaryWriter bw, object value)
+        {
+            // TODO:
+        }
+
 
         //public string ToJson()
         //{
