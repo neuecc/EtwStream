@@ -2,7 +2,7 @@ EtwStream
 ---
 [ETW(Event Tracing for Windows)](https://msdn.microsoft.com/en-us/library/windows/desktop/bb968803.aspx) and [EventSource](https://msdn.microsoft.com/en-us/library/system.diagnostics.tracing.eventsource.aspx) is important feature for structured logging in .NET. But monitoring log stream is very hard. EtwStream provides LINQPad integartion, you can dump ETW stream simply like log viewer.
 
-EtwStream is full featured logger, In-Process Rx Logger and Out-of-Process next generation logging service with C# Scripting config. You can replace log4net/NLog/Serilog/SLAB etc. Please see [EtwStream.Core](#etwstreamcore) and [EtwStream.Service](#etwstreamservice) section. 
+EtwStream is full featured logger, In-Process Rx Logger and Out-of-Process next generation logging service with C# Scripting config. You can replace log4net/NLog/Serilog/SLAB etc. Please see [EtwStream.Core](#etwstreamcoreetwstreaminprocess) and [EtwStream.Service](#etwstreamservice) section. 
 
 LINQPad Viewer
 ---
