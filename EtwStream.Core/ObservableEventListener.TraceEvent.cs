@@ -22,21 +22,7 @@ namespace EtwStream
         /// <param name="providerNameOrGuid">e.g.'MyEventSource'</param>
         public static IObservable<TraceEvent> FromTraceEvent(params string[] providerNameOrGuid)
         {
-            var guids = new List<Guid>();
-            foreach (var item in providerNameOrGuid)
-            {
-                Guid guid;
-                if (Guid.TryParse(item, out guid))
-                {
-                    guids.Add(guid);
-                }
-                else
-                {
-                    guids.Add(TraceEventProviders.GetEventSourceGuidFromName(item));
-                }
-            }
-
-            return FromTraceEvent(guids.ToArray());
+            return FromTraceEvent(providerNameOrGuid.Select(x => new TraceEventProvider(x)).ToArray());
         }
 
         /// <summary>
@@ -45,10 +31,18 @@ namespace EtwStream
         /// <param name="providerGuid">e.g.'2e5dba47-a3d2-4d16-8ee0-6671ffdcd7b5'</param>
         public static IObservable<TraceEvent> FromTraceEvent(params Guid[] providerGuid)
         {
-            IConnectableObservable<TraceEvent> source;
-            var session = new TraceEventSession("ObservableEventListenerFromTraceEventSession." + Guid.NewGuid().ToString());
-            var sessionName = session.SessionName;
+            return FromTraceEvent(providerGuid.Select(x => new TraceEventProvider(x)).ToArray());
+        }
 
+
+        /// <summary>
+        /// Observe Out-of-Process ETW Realtime session by provider Name or string Guid with Level.
+        /// </summary>
+        /// <param name="providerNameOrGuid">e.g.'MyEventSource'</param>
+        public static IObservable<TraceEvent> FromTraceEvent(params TraceEventProvider[] providers)
+        {
+            IConnectableObservable<TraceEvent> source;
+            var session = new TraceEventSession("ObservableEventListenerFromTraceEventSession." + Guid.NewGuid());
             try
             {
                 source = session.Source.Dynamic.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
@@ -60,9 +54,9 @@ namespace EtwStream
                     .Where(x => x.EventName != ManifestEventName && x.ID != ManifestEventID)
                     .Finally(() => session.Dispose())
                     .Publish();
-                foreach (var item in providerGuid)
+                foreach (var item in providers)
                 {
-                    session.EnableProvider(item);
+                    session.EnableProvider(item.Guid, item.Level);
                 }
             }
             catch
