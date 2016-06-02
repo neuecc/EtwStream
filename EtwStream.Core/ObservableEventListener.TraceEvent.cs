@@ -38,7 +38,7 @@ namespace EtwStream
         /// <summary>
         /// Observe Out-of-Process ETW Realtime session by provider Name or string Guid with Level.
         /// </summary>
-        /// <param name="providerNameOrGuid">e.g.'MyEventSource'</param>
+        /// <param name="providers">e.g.'MyEventSource'</param>
         public static IObservable<TraceEvent> FromTraceEvent(params TraceEventProvider[] providers)
         {
             IConnectableObservable<TraceEvent> source;
