@@ -41,16 +41,17 @@ namespace EtwStream
         /// <param name="providers">e.g.'MyEventSource'</param>
         public static IObservable<TraceEvent> FromTraceEvent(params TraceEventProvider[] providers)
         {
+            IDisposable registerManifestSubscription = System.Reactive.Disposables.Disposable.Empty;
             IConnectableObservable<TraceEvent> source;
             var session = new TraceEventSession("ObservableEventListenerFromTraceEventSession." + Guid.NewGuid());
             try
             {
+                registerManifestSubscription = Observable.FromEvent<ProviderManifest>(
+                        h => session.Source.Dynamic.DynamicProviderAdded += h,
+                        h => session.Source.Dynamic.DynamicProviderAdded -= h)
+                    .Subscribe(x => TraceEventExtensions.CacheSchema(x));
+
                 source = session.Source.Dynamic.Observe((pName, eName) => EventFilterResponse.AcceptEvent)
-                    .Do(x =>
-                    {
-                        if (x.EventName == ManifestEventName)
-                            TraceEventExtensions.ReadSchema(x);
-                    })
                     .Where(x => x.EventName != ManifestEventName && x.ID != ManifestEventID)
                     .Finally(() => session.Dispose())
                     .Publish();
@@ -62,6 +63,7 @@ namespace EtwStream
             catch
             {
                 session.Dispose();
+                registerManifestSubscription.Dispose();
                 throw;
             }
 
@@ -71,6 +73,7 @@ namespace EtwStream
                 {
                     session.Source.Process();
                 }
+                registerManifestSubscription.Dispose();
             }, TaskCreationOptions.LongRunning);
 
             return source.RefCount();

@@ -17,34 +17,32 @@ namespace EtwStream
         //{ providerGuid : { eventId: KeywordName }}
         readonly static ConcurrentDictionary<Guid, ReadOnlyDictionary<int, string>> cache = new ConcurrentDictionary<Guid, ReadOnlyDictionary<int, string>>();
 
-        internal static void ReadSchema(TraceEvent manifestEvent)
+        internal static void CacheSchema(ProviderManifest manifest)
         {
-            var xElem = XElement.Parse(manifestEvent.ToXml(new StringBuilder()).ToString());
+            var xElem = XElement.Parse(manifest.Manifest);
             var ns = xElem.DescendantsAndSelf().First(x => x.Name.LocalName != "Event").Name.Namespace;
-            var guidText = xElem.Descendants(ns + "provider").First().Attribute("guid").Value;
-            var guid = new Guid(guidText.Replace("{", "").Replace("}", ""));
-            cache.GetOrAdd(guid, s =>
-            {
-                // { tid : {[payloadNames]}}
-                var tidRef = xElem.Descendants(ns + "template")
-                    .ToDictionary(x => x.Attribute("tid").Value, x => new ReadOnlyCollection<string>(
-                        x.Elements(ns + "data")
-                        .Select(y => y.Attribute("name").Value)
-                        .ToArray()));
 
-                var dict = xElem.Descendants(ns + "event")
-                    .ToDictionary(x => int.Parse(x.Attribute("value").Value),
-                        x => x.Attribute("keywords")?.Value ?? "");
+            // { tid : {[payloadNames]}}
+            var tidRef = xElem.Descendants(ns + "template")
+                .ToDictionary(x => x.Attribute("tid").Value, x => new ReadOnlyCollection<string>(
+                    x.Elements(ns + "data")
+                    .Select(y => y.Attribute("name").Value)
+                    .ToArray()));
 
-                return new ReadOnlyDictionary<int, string>(dict);
-            });
+            var dict = xElem.Descendants(ns + "event")
+                .ToDictionary(
+                    x => int.Parse(x.Attribute("value").Value),
+                    x => x.Attribute("keywords")?.Value ?? "");
+
+            var readOnlyDict = new ReadOnlyDictionary<int, string>(dict);
+            cache[manifest.Guid] = readOnlyDict;
         }
 
         public static string GetKeywordName(this TraceEvent traceEvent)
         {
             ReadOnlyDictionary<int, string> schema;
             string name;
-            return cache.TryGetValue(traceEvent.ProviderGuid, out schema) 
+            return cache.TryGetValue(traceEvent.ProviderGuid, out schema)
                 ? schema.TryGetValue((int)traceEvent.ID, out name)
                     ? name
                     : traceEvent.Keywords.ToString()
