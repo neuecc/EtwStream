@@ -6,22 +6,27 @@ namespace EtwStream
 {
     public class TraceEventProvider
     {
-        public Guid Guid;
-        public TraceEventLevel Level;
+        public Guid Guid { get; }
+        public TraceEventLevel Level { get; }
 
         public TraceEventProvider(string nameOrGuid, TraceEventLevel level = TraceEventLevel.Verbose)
         {
-            if (!Guid.TryParse(nameOrGuid, out Guid))
+            Guid guid;
+            if (!Guid.TryParse(nameOrGuid, out guid))
             {
-                Guid = TraceEventProviders.GetEventSourceGuidFromName(nameOrGuid);
+                this.Guid = TraceEventProviders.GetEventSourceGuidFromName(nameOrGuid);
             }
-            Level = level;
+            else
+            {
+                this.Guid = guid;
+            }
+            this.Level = level;
         }
 
         public TraceEventProvider(Guid guid, TraceEventLevel level = TraceEventLevel.Verbose)
         {
-            Guid = guid;
-            Level = level;
+            this.Guid = guid;
+            this.Level = level;
         }
     }
 }
