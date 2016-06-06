@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>EtwStream</id>
-        <version>1.3.1</version>
+        <version>1.3.2</version>
         <title>EtwStream</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -10,8 +10,8 @@
         <description>Logs are event streams. EtwStream provides In-Process and Out-of-Process ObservableEventListener. Everything can compose and output to anywhere by Reactive Extensions.</description>
         <releaseNotes>
             <![CDATA[
-FileSink uses dedicated writer thread.
-Fix write empty line when message is buffered.
+Ability to configure level for ObservableEventListener.FromTraceEvent, thanks @Rurouni
+Improved performance for FromTraceEvent(avoid parse manifest)
             ]]>
         </releaseNotes>
         <language>en-US</language>
