@@ -154,7 +154,7 @@ EtwStream.Service
 ---
 EtwStream.Service is Out-Of-Process worker of EtwStream. It's built on [Topshelf](https://github.com/Topshelf/Topshelf). You can execute direct(for Console Application Viewer) or install Windows Service(EtwStreamService.exe -install). 
 
-You can download binary from releases page. > [EtwStraem/releases/EtwStream.Service](https://github.com/neuecc/EtwStream/releases/tag/EtwStream.Service)
+You can download binary from releases page, `EtwStream.Service_*.*.*.zip` -> [EtwStraem/releases](https://github.com/neuecc/EtwStream/releases/). execute as Logging Viewer. -install as Windows Service.
 
 The concept is same as [Semantic Logging Application Block's Out-of-Process Service](https://msdn.microsoft.com/en-us/library/dn440729.aspx). Different is configure by Roslyn C# Scripting and supports Self-describing events of .NET 4.6 EventSource.  
 
